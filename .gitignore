@@ -7,6 +7,10 @@
 *.o
 *.obj
 
+# node_module
+/node_modules
+/dist
+
 # Precompiled Headers
 *.gch
 *.pch
