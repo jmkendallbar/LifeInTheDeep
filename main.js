@@ -32,6 +32,7 @@ let initialSeconds;
 let frequency;
 let minStroke, maxStroke;
 let prevValue;
+let pitchValue, headValue, rollValue;
 
 // This is the intializing function when the website will load first
 init();
@@ -125,7 +126,7 @@ function init() {
   scene.add(dirLight);
 
   // ground
-
+  let headMesh;
   const mesh = new THREE.Mesh(
     new THREE.PlaneGeometry(100, 100),
     new THREE.MeshPhongMaterial({ color: 0xcbcbcb, depthWrite: false })
@@ -141,9 +142,12 @@ function init() {
     function (gltf) {
       model = gltf.scene;
       scene.add(model);
-
       model.traverse(function (object) {
+        console.log(object.name);
         if (object.isMesh) object.castShadow = true;
+        if (object.isMesh && object.name === "Head") {
+          headMesh = object;
+        }
       });
 
       //
@@ -226,6 +230,45 @@ function init() {
       sliderTwo.min = sealBehaviourData[0].Seconds + 1;
       sliderTwo.max = sealBehaviourData[length].Seconds;
       sliderTwo.value = sealBehaviourData[length].Seconds;
+
+      // Get references to the input elements
+      const headInput = document.getElementById("headInput");
+      const pitchInput = document.getElementById("pitchInput");
+      const rollInput = document.getElementById("rollInput");
+
+      // Add onchange event listeners to the input elements
+      headInput.addEventListener("input", function () {
+        handleInputChange(headInput);
+      });
+
+      pitchInput.addEventListener("input", function () {
+        handleInputChange(pitchInput);
+      });
+
+      rollInput.addEventListener("input", function () {
+        handleInputChange(rollInput);
+      });
+
+      function handleInputChange(inputElement) {
+        // Get the value of the input element
+        const value = parseInt(inputElement.value);
+
+        // Determine which input field was changed by its id
+        if (inputElement.id === "headInput") {
+          // Handle changes for the Head input
+          headValue = value
+          updateRotation()
+        } else if (inputElement.id === "pitchInput") {
+          // Handle changes for the Pitch input
+          pitchValue = value
+          updateRotation()
+        } else if (inputElement.id === "rollInput") {
+          // Handle changes for the Roll input
+          rollValue = value
+          updateRotation()
+        }
+      }
+
 
       // DUAL RANGE SLIDER
       function slideOne() {
@@ -658,6 +701,19 @@ function init() {
 }
 // end init function
 
+function updateRotation() {
+  if (model && pitchValue) {
+    model.rotation.x = pitchValue * 0.01;
+  }
+  if (model && rollValue) {
+    model.rotation.z = rollValue * 0.01;
+  }
+  if (model && headValue) {
+    model.rotation.y = headValue * 0.01;
+  }
+  // model.quaternion.set(pitchValue, headValue, rollValue, 0);
+  // Apply the rotation to your object
+}
 // creating UI panel model where the user can control's the seal behaviour
 function createPanel() {
   const panel = new GUI({ width: 310 });
