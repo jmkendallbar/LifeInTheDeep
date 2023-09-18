@@ -256,19 +256,18 @@ function init() {
         // Determine which input field was changed by its id
         if (inputElement.id === "headInput") {
           // Handle changes for the Head input
-          headValue = value
-          updateRotation()
+          headValue = value;
+          updateRotation();
         } else if (inputElement.id === "pitchInput") {
           // Handle changes for the Pitch input
-          pitchValue = value
-          updateRotation()
+          pitchValue = value;
+          updateRotation();
         } else if (inputElement.id === "rollInput") {
           // Handle changes for the Roll input
-          rollValue = value
-          updateRotation()
+          rollValue = value;
+          updateRotation();
         }
       }
-
 
       // DUAL RANGE SLIDER
       function slideOne() {
@@ -703,13 +702,13 @@ function init() {
 
 function updateRotation() {
   if (model && pitchValue) {
-    model.rotation.x = pitchValue * 0.01;
+    model.rotation.x = pitchValue * -(Math.PI / 180);
   }
   if (model && rollValue) {
-    model.rotation.z = rollValue * 0.01;
+    model.rotation.z = rollValue * -(Math.PI / 180);
   }
   if (model && headValue) {
-    model.rotation.y = headValue * 0.01;
+    model.rotation.y = headValue * -(Math.PI / 180);
   }
   // model.quaternion.set(pitchValue, headValue, rollValue, 0);
   // Apply the rotation to your object
