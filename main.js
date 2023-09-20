@@ -13,6 +13,7 @@ import {
   prepareCrossFade,
 } from "./utils.js";
 import animate from "./animate";
+import drawGraph from "./graph";
 // import seal from "./data/Minimized_data.json";
 import seal from "./seal-info/batch_3.json";
 
@@ -37,9 +38,9 @@ export const weight = {
   swimWeight: 0,
 };
 let isStart = true;
-let sealBehaviourData = [];
+export let sealBehaviourData = [];
 let length = 0;
-let lastIndex;
+export let lastIndex;
 // let prevValue;
 
 let playSpeed = 300;
@@ -78,31 +79,16 @@ function init() {
     return Number(prev.Stroke_Rate) > Number(curr.Stroke_Rate) ? prev : curr;
   });
 
-  // Define Data
-  const data = [
-    {
-      x: xArray,
-      y: yArray,
-      mode: "markers",
-    },
-  ];
+  const plotData = drawGraph(
+    xArray,
+    yArray,
+    minStroke,
+    maxStroke,
+    lastIndex,
+    sealBehaviourData
+  );
 
-  // Define Layout
-  const layout = {
-    xaxis: {
-      range: [
-        Number(sealBehaviourData[0].Seconds) / 60,
-        Number(sealBehaviourData[lastIndex].Seconds) / 60,
-      ],
-      title: "Time [min of dive]",
-    },
-    yaxis: {
-      range: [Number(minStroke.Stroke_Rate), Number(maxStroke.Stroke_Rate)],
-      title: "Stroke rate (spm)",
-    },
-  };
-
-  Plotly.newPlot("chartDiv", data, layout);
+  Plotly.newPlot("chartDiv", plotData.data, plotData.layout);
   // plotly chart --end
 
   // this is the container div where we are showing the overall UI video.
@@ -414,14 +400,6 @@ function init() {
         // after loaded and data this function will call
         intervalFunction();
 
-        let data1 = [
-          {
-            x: xArray1,
-            y: xArray1,
-            mode: "markers",
-          },
-        ];
-
         minStroke = xArray1.reduce(function (prev, curr) {
           return Number(prev.Stroke_Rate) < Number(curr.Stroke_Rate)
             ? prev
@@ -434,24 +412,16 @@ function init() {
             : curr;
         });
 
-        // Define Layout
-        let layout1 = {
-          xaxis: {
-            range: [
-              Number(xArray1[0].Seconds) / 60,
-              Number(xArray1[xArray1.length - 1].Seconds) / 60,
-            ],
-            title: "Time [min of dive]",
-          },
-          yaxis: {
-            range: [
-              Number(minStroke.Stroke_Rate),
-              Number(maxStroke.Stroke_Rate),
-            ],
-            title: "Stroke rate (spm)",
-          },
-        };
-        Plotly.update("chartDiv", data1, layout1);
+        const updatePlotData = drawGraph(
+          xArray1,
+          xArray1,
+          minStroke,
+          maxStroke,
+          xArray1.length - 1,
+          xArray1
+        );
+
+        Plotly.update("chartDiv", updatePlotData.data, updatePlotData.layout);
       };
 
       // MINUTE ELEMENT
