@@ -13,6 +13,8 @@ import {
   skeleton,
   camera,
   renderer,
+  camera2,
+  inset,
 } from "./main.js";
 // import stepMode.singleStepMode from "./main.js";
 
@@ -188,4 +190,10 @@ export function onWindowResize() {
   camera.updateProjectionMatrix();
 
   renderer.setSize(window.innerWidth, window.innerHeight);
+
+  inset.insetWidth = window.innerHeight / 4; // square
+  inset.insetHeight = window.innerHeight / 4;
+
+  camera2.aspect = inset.insetWidth / inset.insetHeight;
+  camera2.updateProjectionMatrix();
 }

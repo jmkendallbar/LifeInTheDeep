@@ -15,9 +15,56 @@ import {
 import animate from "./animate";
 import drawGraph from "./graph";
 import elementStyle from "./elementStyle";
-// import seal from "./data/Minimized_data.json";
-import seal from "./seal-info/batch_3.json";
 import appendElement from "./appendElement";
+
+// path ---start
+import { GPUStatsPanel } from "three/addons/utils/GPUStatsPanel.js";
+// import { GUI } from "three/addons/libs/lil-gui.module.min.js";
+import { Line2 } from "three/addons/lines/Line2.js";
+import { LineMaterial } from "three/addons/lines/LineMaterial.js";
+import { LineGeometry } from "three/addons/lines/LineGeometry.js";
+// import * as GeometryUtils from "three/addons/utils/GeometryUtils.js";
+
+const importPromises = [];
+let seal = [];
+// let model;
+
+// Create an array of Promises for importing each file
+var xyz;
+for (xyz = 1; xyz <= 2; xyz++) {
+  importPromises.push(import(`./seal-info/batch_${xyz}.json`));
+}
+
+// Use Promise.all to wait for all imports to complete
+Promise.all(importPromises)
+  .then((modules) => {
+    // Now, 'modules' is an array of the imported module objects
+    modules.forEach((module, index) => {
+      module.default.forEach((item) => {
+        seal.push(item); // Call a function from the imported module
+      });
+    });
+    init();
+    // animate();
+  })
+  .catch((error) => {
+    console.error("Error importing files:", error);
+  });
+
+let skip = 1;
+export let line, camera2;
+let line1;
+export let matLine, matLineBasic, matLineDashed;
+export let gpuPanel;
+// let gui;
+
+// viewport
+export let inset = {
+  insetWidth: "",
+  insetHeight: "",
+};
+// export let insetWidth;
+// export let insetHeight;
 
 // declaring variables
 export let scene, renderer, camera, stats, model;
@@ -39,13 +86,13 @@ export const weight = {
   glideWeight: 0,
   swimWeight: 0,
 };
-let isStart = true;
 export let sealBehaviourData = [];
-let length = 0;
 export let lastIndex;
+let isStart = true;
+let length = 0;
 // let prevValue;
 
-let playSpeed = 300;
+let playSpeed = 200;
 let initialSeconds;
 let frequency;
 let minStroke, maxStroke;
@@ -67,7 +114,7 @@ export let rangeSlider,
   resetBtn;
 
 // This is the intializing function when the website will load first
-init();
+// init();
 
 // start init function
 function init() {
@@ -78,8 +125,8 @@ function init() {
     sealBehaviourData[Number(item.Seconds) - initialSeconds] = item;
   });
 
-  length = (sealBehaviourData.length - 1) / frequency;
-  lastIndex = length * frequency;
+  length = sealBehaviourData.length / frequency;
+  lastIndex = (length - 1) * frequency;
 
   const xArray = sealBehaviourData.map((item) => {
     return Number(item.Seconds) / 60;
@@ -119,7 +166,10 @@ function init() {
     1000
   );
   camera.position.set(5, 1, 1);
-  camera.lookAt(0, 1, 0);
+  // camera.lookAt(0, 1, 0);
+
+  camera2 = new THREE.PerspectiveCamera(45, 1, 1, 1000);
+  camera2.position.copy(camera.position);
 
   clock = new THREE.Clock();
 
@@ -185,7 +235,7 @@ function init() {
 
       activateAllActions();
 
-      animate();
+      // animate();
 
       // Declaring the varaibles for UI component like button, rangeSlider and more.
       let timer;
@@ -240,10 +290,10 @@ function init() {
       let sliderMaxValue = document.getElementById("slider-1").max;
       sliderOne.min = Number(sealBehaviourData[0].Seconds);
       sliderOne.value = Number(sealBehaviourData[0].Seconds);
-      sliderOne.max = Number(sealBehaviourData[length - 1].Seconds);
-      sliderTwo.min = Number(sealBehaviourData[0].Seconds) + 1;
-      sliderTwo.max = Number(sealBehaviourData[length].Seconds);
-      sliderTwo.value = Number(sealBehaviourData[length].Seconds);
+      sliderOne.max = Number(sealBehaviourData[lastIndex].Seconds);
+      sliderTwo.min = Number(sealBehaviourData[0].Seconds) + frequency;
+      sliderTwo.max = Number(sealBehaviourData[lastIndex].Seconds);
+      sliderTwo.value = Number(sealBehaviourData[lastIndex].Seconds);
 
       // DUAL RANGE SLIDER
       function slideOne() {
@@ -287,7 +337,7 @@ function init() {
 
       // range slider
       rangeSlider.min = Number(sealBehaviourData[0].Seconds) - initialSeconds;
-      rangeSlider.max = length;
+      rangeSlider.max = length - 1;
       rangeSlider.defaultValue =
         Number(sealBehaviourData[0].Seconds) - initialSeconds;
 
@@ -514,11 +564,147 @@ function init() {
         prevValue = rangeSlider.value;
       }
 
+      // end --------------------
+
+      const pointsPath = new THREE.CurvePath();
+
+      sealBehaviourData.forEach((item, index) => {
+        if (index + skip < sealBehaviourData.length) {
+          pointsPath.add(
+            new THREE.LineCurve3(
+              new THREE.Vector3(
+                Number(sealBehaviourData[index].x),
+                Number(sealBehaviourData[index].y),
+                Number(sealBehaviourData[index].z)
+              ),
+              new THREE.Vector3(
+                Number(sealBehaviourData[index + 1].x),
+                Number(sealBehaviourData[index + 1].y),
+                Number(sealBehaviourData[index + 1].z)
+              )
+            )
+          );
+        }
+      });
+
+      const points = pointsPath.curves.reduce(
+        (p, d) => [...p, ...d.getPoints(20)],
+        []
+      );
+
+      const positions = [];
+      const colors = [];
+
+      const spline = new THREE.CatmullRomCurve3(points);
+      const divisions = Math.round(points.length);
+      const point = new THREE.Vector3();
+      const color = new THREE.Color();
+
+      const stateColors = [0x535f97, 0x368c87, 0xe9bc65, 0x83bd56, 0x4787b9];
+
+      for (let i = 0, l = divisions; i < l; i++) {
+        const t = i / (l - 1);
+        spline.getPoint(t, point);
+        positions.push(point.x, point.y, point.z);
+        // color.setHSL(t, 1.0, 0.5, THREE.SRGBColorSpace);
+        // const stateIndex = Math.floor(t * (stateColors.length - 1));
+        if (
+          sealBehaviourData[Math.ceil(i / 21)]?.Simple_Sleep_Code ===
+          "Active Waking"
+        ) {
+          color.setHex(stateColors[0]);
+          colors.push(color.r, color.g, color.b);
+        } else if (
+          sealBehaviourData[Math.ceil(i / 21)]?.Simple_Sleep_Code === "SWS"
+        ) {
+          color.setHex(stateColors[3]);
+          colors.push(color.r, color.g, color.b);
+        } else {
+          color.setHex(stateColors[2]);
+          colors.push(color.r, color.g, color.b);
+        }
+      }
+
+      const geometry = new LineGeometry();
+      geometry.setPositions(positions);
+      geometry.setColors(colors);
+
+      matLine = new LineMaterial({
+        color: 0xffffff,
+        linewidth: 10, // in world units with size attenuation, pixels otherwise
+        vertexColors: true,
+
+        //resolution:  // to be set by renderer, eventually
+        dashed: false,
+        alphaToCoverage: true,
+      });
+
+      line = new Line2(geometry, matLine);
+      line.computeLineDistances();
+      line.scale.set(1, 1, 1);
+      scene.add(line);
+
+      arrow("x");
+      arrow("y");
+      arrow("z");
+
+      function arrow(axes) {
+        var dir;
+        var origin = new THREE.Vector3(0, 0, 0);
+        var len = 1;
+        var col = axes === "x" ? 0xff0000 : axes === "y" ? 0x00ff00 : 0x0000ff;
+        if (axes === "x") dir = new THREE.Vector3(1, 0, 0);
+        if (axes === "y") dir = new THREE.Vector3(0, 1, 0);
+        if (axes === "z") dir = new THREE.Vector3(0, 0, 1);
+        var arrowHelper = new THREE.ArrowHelper(dir, origin, len, col);
+        line.add(arrowHelper);
+      }
+
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(positions, 3)
+      );
+      geo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+
+      matLineBasic = new THREE.LineBasicMaterial({ vertexColors: true });
+      matLineDashed = new THREE.LineDashedMaterial({
+        vertexColors: true,
+        scale: 2,
+        dashSize: 1,
+        gapSize: 1,
+      });
+
+      line1 = new THREE.Line(geo, matLineBasic);
+      line1.computeLineDistances();
+      line1.visible = false;
+      scene.add(line1);
+
+      const lod = new THREE.LOD();
+
+      lod.addLevel(line, 20);
+      lod.addLevel(line1, 20);
+
+      scene.add(lod);
+
+      window.addEventListener("resize", onWindowResize);
+      onWindowResize();
+
+      stats = new Stats();
+      // document.body.appendChild(stats.dom);
+
+      gpuPanel = new GPUStatsPanel(renderer.getContext());
+      stats.addPanel(gpuPanel);
+      stats.showPanel(0);
+
+      animate();
+
       function intervalFunction() {
         timer = setInterval(() => {
-          if (Number(rangeSlider.value) < Number(rangeSlider.max)) {
+          if (Number(rangeSlider.value) < Number(rangeSlider.max) - 1) {
             rangeSlider.value = rangeSlider.value * 1 + 1;
             currentStatus();
+            moveGeometryToCoordinates(Number(rangeSlider.value));
           } else {
             clearInterval(timer);
             pauseContinue();
@@ -528,7 +714,36 @@ function init() {
           }
         }, [playSpeed]);
       }
-      // end --------------------
+      // END SUR
+
+      var gridHelper = new THREE.GridHelper(12, 12);
+      gridHelper.rotation.x = 0.04;
+      gridHelper.rotation.y = 0;
+      gridHelper.rotation.z = 0;
+      scene.add(gridHelper);
+
+      var axesHelper = new THREE.AxesHelper(10);
+      scene.add(axesHelper);
+
+      // Function to move the geometry to the specified X, Y, Z coordinates
+      function moveGeometryToCoordinates(j) {
+        // Calculate the closest point on the path to the target coordinates
+        let fraction = 0;
+        let closestPoint;
+        while (fraction < 1) {
+          closestPoint = pointsPath.curves[j].getPointAt(fraction);
+          model.lookAt(
+            sealBehaviourData[j + 1].x,
+            sealBehaviourData[j + 1].y,
+            sealBehaviourData[j + 1].z
+          );
+          model.position.copy(closestPoint);
+          camera.lookAt(model.position);
+          // Apply the rotation to the model
+          renderer.render(scene, camera);
+          fraction = fraction + 0.1;
+        }
+      }
     }
   );
 

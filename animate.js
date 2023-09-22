@@ -12,6 +12,10 @@ import {
   stats,
   controls,
   nextStep,
+  camera2,
+  matLine,
+  gpuPanel,
+  inset,
 } from "./main.js";
 import { updateWeightSliders, updateCrossFadeControls } from "./utils.js";
 
@@ -47,8 +51,48 @@ export default function animate() {
 
   mixer.update(mixerUpdateDelta);
 
-  stats.update();
+  // stats.update();
 
   controls.update();
+  // renderer.render(scene, camera);
+
+  // start ----------
+  // requestAnimationFrame(animate);
+
+  stats.update();
+
+  // main scene
+
+  renderer.setClearColor(0x000000, 0);
+
+  renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
+
+  // renderer will set this eventually
+  matLine.resolution.set(window.innerWidth, window.innerHeight); // resolution of the viewport
+
+  gpuPanel.startQuery();
   renderer.render(scene, camera);
+  gpuPanel.endQuery();
+
+  // inset scene
+
+  renderer.setClearColor(0x222222, 1);
+
+  renderer.clearDepth();
+
+  renderer.setScissorTest(true);
+
+  renderer.setScissor(20, 20, inset.insetWidth, inset.insetHeight);
+
+  renderer.setViewport(20, 20, inset.insetWidth, inset.insetHeight);
+
+  camera2.position.copy(camera.position);
+  camera2.quaternion.copy(camera.quaternion);
+
+  // renderer will set this eventually
+  matLine.resolution.set(inset.insetWidth, inset.insetHeight); // resolution of the inset viewport
+
+  renderer.render(scene, camera2);
+
+  renderer.setScissorTest(false);
 }
