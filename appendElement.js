@@ -25,7 +25,7 @@ export default function appendElement() {
   document.body.appendChild(resetBtn);
   document.body.appendChild(minuteEle);
   document.body.appendChild(stateEle);
-  // document.body.appendChild(depthEle);
+  document.body.appendChild(depthEle);
   document.body.appendChild(playSpeedBtn);
   document.body.appendChild(cropBtn);
 }

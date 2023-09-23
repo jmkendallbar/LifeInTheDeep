@@ -13,17 +13,15 @@ import {
   prepareCrossFade,
 } from "./utils.js";
 import animate from "./animate";
-import drawGraph from "./graph";
+// import drawGraph from "./graph";
 import elementStyle from "./elementStyle";
 import appendElement from "./appendElement";
 
 // path ---start
 import { GPUStatsPanel } from "three/addons/utils/GPUStatsPanel.js";
-// import { GUI } from "three/addons/libs/lil-gui.module.min.js";
 import { Line2 } from "three/addons/lines/Line2.js";
 import { LineMaterial } from "three/addons/lines/LineMaterial.js";
 import { LineGeometry } from "three/addons/lines/LineGeometry.js";
-// import * as GeometryUtils from "three/addons/utils/GeometryUtils.js";
 
 const importPromises = [];
 let seal = [];
@@ -51,7 +49,7 @@ Promise.all(importPromises)
     console.error("Error importing files:", error);
   });
 
-let skip = 1;
+// let skip = 1;
 export let line, camera2;
 let line1;
 export let matLine, matLineBasic, matLineDashed;
@@ -63,9 +61,6 @@ export let inset = {
   insetWidth: "",
   insetHeight: "",
 };
-// export let insetWidth;
-// export let insetHeight;
-
 // declaring variables
 export let scene, renderer, camera, stats, model;
 export let controls;
@@ -128,35 +123,41 @@ function init() {
   length = sealBehaviourData.length / frequency;
   lastIndex = (length - 1) * frequency;
 
-  const xArray = sealBehaviourData.map((item) => {
-    return Number(item.Seconds) / 60;
-  });
-  const yArray = sealBehaviourData.map((item) => {
-    return Number(item.Stroke_Rate);
-  });
+  // const xArray = sealBehaviourData.map((item) => {
+  //   return Number(item.Seconds) / 60;
+  // });
+  // const yArray = sealBehaviourData.map((item) => {
+  //   return Number(item.Stroke_Rate);
+  // });
 
-  minStroke = sealBehaviourData.reduce(function (prev, curr) {
-    return Number(prev.Stroke_Rate) < Number(curr.Stroke_Rate) ? prev : curr;
-  });
+  // minStroke = sealBehaviourData.reduce(function (prev, curr) {
+  //   return Number(prev.Stroke_Rate) < Number(curr.Stroke_Rate) ? prev : curr;
+  // });
 
-  maxStroke = sealBehaviourData.reduce(function (prev, curr) {
-    return Number(prev.Stroke_Rate) > Number(curr.Stroke_Rate) ? prev : curr;
-  });
+  // maxStroke = sealBehaviourData.reduce(function (prev, curr) {
+  //   return Number(prev.Stroke_Rate) > Number(curr.Stroke_Rate) ? prev : curr;
+  // });
 
-  const plotData = drawGraph(
-    xArray,
-    yArray,
-    minStroke,
-    maxStroke,
-    lastIndex,
-    sealBehaviourData
-  );
+  // const plotData = drawGraph(
+  //   xArray,
+  //   yArray,
+  //   minStroke,
+  //   maxStroke,
+  //   lastIndex,
+  //   sealBehaviourData
+  // );
 
-  Plotly.newPlot("chartDiv", plotData.data, plotData.layout);
+  // Plotly.newPlot("chartDiv", plotData.data, plotData.layout);
   // plotly chart --end
 
   // this is the container div where we are showing the overall UI video.
   const container = document.getElementById("container");
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.useLegacyLights = false;
+  container.appendChild(renderer.domElement);
 
   // creating instance for camera, clock and scene.
   camera = new THREE.PerspectiveCamera(
@@ -166,10 +167,20 @@ function init() {
     1000
   );
   camera.position.set(5, 1, 1);
-  // camera.lookAt(0, 1, 0);
+  camera.lookAt(0, 1, 0);
 
-  camera2 = new THREE.PerspectiveCamera(45, 1, 1, 1000);
+  camera2 = new THREE.PerspectiveCamera(
+    45,
+    window.innerWidth / window.innerHeight,
+    1,
+    1000
+  );
   camera2.position.copy(camera.position);
+  camera2.lookAt(0, 1, 0);
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.minDistance = 10;
+  controls.maxDistance = 100;
 
   clock = new THREE.Clock();
 
@@ -213,7 +224,7 @@ function init() {
       model.traverse(function (object) {
         if (object.isMesh) object.castShadow = true;
       });
-
+      model.rotation.x = -Math.PI / 2;
       //
 
       skeleton = new THREE.SkeletonHelper(model);
@@ -371,71 +382,71 @@ function init() {
         rangeSlider.value = rangeSlider.min;
       };
 
-      confirmDuration.onclick = function () {
-        clearInterval(timer);
-        if (playBtn.style.display === "block") {
-          pauseContinue();
-          isTimerStop = true;
-          pauseBtn.style.display = "block";
-          playBtn.style.display = "none";
-        }
-        let xArray1 = sealBehaviourData.filter((item) => {
-          if (
-            sliderOne.value <= Number(item.Seconds) &&
-            sliderTwo.value >= Number(item.Seconds)
-          ) {
-            return item;
-          }
-        });
+      // confirmDuration.onclick = function () {
+      //   clearInterval(timer);
+      //   if (playBtn.style.display === "block") {
+      //     pauseContinue();
+      //     isTimerStop = true;
+      //     pauseBtn.style.display = "block";
+      //     playBtn.style.display = "none";
+      //   }
+      //   let xArray1 = sealBehaviourData.filter((item) => {
+      //     if (
+      //       sliderOne.value <= Number(item.Seconds) &&
+      //       sliderTwo.value >= Number(item.Seconds)
+      //     ) {
+      //       return item;
+      //     }
+      //   });
 
-        // initialSeconds = xArray1[0].Seconds;
-        let startIndex = sealBehaviourData
-          .map((item) => {
-            if (sliderOne.value === item.Seconds.toString()) {
-              return Number(item.Seconds);
-            }
-          })
-          .indexOf(Number(sliderOne.value));
-        let endIndex = sealBehaviourData
-          .map((item) => {
-            if (sliderTwo.value === item.Seconds.toString()) {
-              return Number(item.Seconds);
-            }
-          })
-          .indexOf(Number(sliderTwo.value));
-        length = (xArray1.length - 1) / frequency;
-        rangeSlider.min = startIndex;
-        rangeSlider.value = startIndex;
-        rangeSlider.defaultValue = startIndex;
-        rangeSlider.max = endIndex;
-        modal.style.display = "none";
+      //   // initialSeconds = xArray1[0].Seconds;
+      //   let startIndex = sealBehaviourData
+      //     .map((item) => {
+      //       if (sliderOne.value === item.Seconds.toString()) {
+      //         return Number(item.Seconds);
+      //       }
+      //     })
+      //     .indexOf(Number(sliderOne.value));
+      //   let endIndex = sealBehaviourData
+      //     .map((item) => {
+      //       if (sliderTwo.value === item.Seconds.toString()) {
+      //         return Number(item.Seconds);
+      //       }
+      //     })
+      //     .indexOf(Number(sliderTwo.value));
+      //   length = (xArray1.length - 1) / frequency;
+      //   rangeSlider.min = startIndex;
+      //   rangeSlider.value = startIndex;
+      //   rangeSlider.defaultValue = startIndex;
+      //   rangeSlider.max = endIndex;
+      //   modal.style.display = "none";
 
-        // after loaded and data this function will call
-        intervalFunction();
+      //   // after loaded and data this function will call
+      //   intervalFunction();
 
-        minStroke = xArray1.reduce(function (prev, curr) {
-          return Number(prev.Stroke_Rate) < Number(curr.Stroke_Rate)
-            ? prev
-            : curr;
-        });
+      //   minStroke = xArray1.reduce(function (prev, curr) {
+      //     return Number(prev.Stroke_Rate) < Number(curr.Stroke_Rate)
+      //       ? prev
+      //       : curr;
+      //   });
 
-        maxStroke = xArray1.reduce(function (prev, curr) {
-          return Number(prev.Stroke_Rate) > Number(curr.Stroke_Rate)
-            ? prev
-            : curr;
-        });
+      //   maxStroke = xArray1.reduce(function (prev, curr) {
+      //     return Number(prev.Stroke_Rate) > Number(curr.Stroke_Rate)
+      //       ? prev
+      //       : curr;
+      //   });
 
-        const updatePlotData = drawGraph(
-          xArray1,
-          xArray1,
-          minStroke,
-          maxStroke,
-          xArray1.length - 1,
-          xArray1
-        );
+      //   const updatePlotData = drawGraph(
+      //     xArray1,
+      //     xArray1,
+      //     minStroke,
+      //     maxStroke,
+      //     xArray1.length - 1,
+      //     xArray1
+      //   );
 
-        Plotly.update("chartDiv", updatePlotData.data, updatePlotData.layout);
-      };
+      //   Plotly.update("chartDiv", updatePlotData.data, updatePlotData.layout);
+      // };
 
       playSpeedBtn.onclick = function () {
         if (playSpeed === 300) {
@@ -521,7 +532,9 @@ function init() {
           currentState.Stroke_Rate
         )?.toFixed(2)}spm`;
         minuteEle.innerText = `MINUTES INTO DIVE ${currentState.Seconds.toString().toHHMMSS()}`;
-        // depthEle.innerText = `DEPTH ${currentState["Depth"]?.toFixed(2)}m`;
+        depthEle.innerText = `DEPTH ${Number(currentState["Depth"])?.toFixed(
+          2
+        )}m`;
         if (!isStart) {
           if (currentState.Simple_Sleep_Code === "REM") {
             if (
@@ -569,7 +582,7 @@ function init() {
       const pointsPath = new THREE.CurvePath();
 
       sealBehaviourData.forEach((item, index) => {
-        if (index + skip < sealBehaviourData.length) {
+        if (index < sealBehaviourData.length - 1) {
           pointsPath.add(
             new THREE.LineCurve3(
               new THREE.Vector3(
@@ -606,8 +619,6 @@ function init() {
         const t = i / (l - 1);
         spline.getPoint(t, point);
         positions.push(point.x, point.y, point.z);
-        // color.setHSL(t, 1.0, 0.5, THREE.SRGBColorSpace);
-        // const stateIndex = Math.floor(t * (stateColors.length - 1));
         if (
           sealBehaviourData[Math.ceil(i / 21)]?.Simple_Sleep_Code ===
           "Active Waking"
@@ -686,6 +697,7 @@ function init() {
       lod.addLevel(line1, 20);
 
       scene.add(lod);
+      lod.rotation.x = -Math.PI / 2;
 
       window.addEventListener("resize", onWindowResize);
       onWindowResize();
@@ -698,6 +710,53 @@ function init() {
       stats.showPanel(0);
 
       animate();
+
+      var gridHelper = new THREE.GridHelper(216, 216);
+      gridHelper.rotation.x = 0.04;
+      gridHelper.rotation.y = 0;
+      gridHelper.rotation.z = 0;
+      scene.add(gridHelper);
+
+      var axesHelper = new THREE.AxesHelper(10);
+      scene.add(axesHelper);
+      axesHelper.rotation.x = -Math.PI / 2;
+
+      // Function to move the geometry to the specified X, Y, Z coordinates
+      let closestPoint,
+        closestPointOnRotatedTrack,
+        rotationMatrix,
+        nextPoint,
+        currentPosition;
+      let dampingFactor = 0.1,
+        desiredCameraPosition,
+        cameraDistance = 14; // Adjust the distance as needed
+      function moveGeometryToCoordinates(j) {
+        // Calculate the closest point on the path to the target coordinates
+        let fraction = 0;
+        while (fraction < 1) {
+          closestPointOnRotatedTrack =
+            pointsPath.curves[j].getPointAt(fraction);
+          currentPosition = pointsPath.curves[j].getPointAt(fraction + 1); // You can adjust the fraction value
+          rotationMatrix = new THREE.Matrix4().makeRotationX(-Math.PI / 2); // Use the same rotation value
+          closestPoint =
+            closestPointOnRotatedTrack.applyMatrix4(rotationMatrix);
+
+          nextPoint = currentPosition.applyMatrix4(rotationMatrix);
+          model.lookAt(nextPoint);
+          model.position.copy(closestPoint);
+
+          desiredCameraPosition = new THREE.Vector3(
+            0,
+            cameraDistance,
+            -cameraDistance
+          ).add(model.position);
+          // Smoothly interpolate the camera's position towards the desired position
+          camera.position.lerp(desiredCameraPosition, dampingFactor);
+          camera.lookAt(model.position);
+          renderer.render(scene, camera);
+          fraction = fraction + 1;
+        }
+      }
 
       function intervalFunction() {
         timer = setInterval(() => {
@@ -715,52 +774,8 @@ function init() {
         }, [playSpeed]);
       }
       // END SUR
-
-      var gridHelper = new THREE.GridHelper(12, 12);
-      gridHelper.rotation.x = 0.04;
-      gridHelper.rotation.y = 0;
-      gridHelper.rotation.z = 0;
-      scene.add(gridHelper);
-
-      var axesHelper = new THREE.AxesHelper(10);
-      scene.add(axesHelper);
-
-      // Function to move the geometry to the specified X, Y, Z coordinates
-      function moveGeometryToCoordinates(j) {
-        // Calculate the closest point on the path to the target coordinates
-        let fraction = 0;
-        let closestPoint;
-        while (fraction < 1) {
-          closestPoint = pointsPath.curves[j].getPointAt(fraction);
-          model.lookAt(
-            sealBehaviourData[j + 1].x,
-            sealBehaviourData[j + 1].y,
-            sealBehaviourData[j + 1].z
-          );
-          model.position.copy(closestPoint);
-          camera.lookAt(model.position);
-          // Apply the rotation to the model
-          renderer.render(scene, camera);
-          fraction = fraction + 0.1;
-        }
-      }
     }
   );
-
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.shadowMap.enabled = true;
-  renderer.useLegacyLights = false;
-  container.appendChild(renderer.domElement);
-
-  stats = new Stats();
-  container.appendChild(stats.dom);
-
-  window.addEventListener("resize", onWindowResize);
-
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.update();
 
   // JS Charting
 }
