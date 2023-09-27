@@ -29,7 +29,7 @@ let seal = [];
 
 // Create an array of Promises for importing each file
 var xyz;
-for (xyz = 1; xyz <= 2; xyz++) {
+for (xyz = 5; xyz <= 6; xyz++) {
   importPromises.push(import(`./seal-info/batch_${xyz}.json`));
 }
 
@@ -108,6 +108,9 @@ export let rangeSlider,
   playBtn,
   resetBtn;
 
+let height, width, depth;
+let halfDepth, halfHeight, halfWidth;
+
 // This is the intializing function when the website will load first
 // init();
 
@@ -159,28 +162,61 @@ function init() {
   renderer.useLegacyLights = false;
   container.appendChild(renderer.domElement);
 
+  // Assuming jsonData is your array of JSON data
+  let minX = Infinity,
+    minY = Infinity,
+    minZ = Infinity;
+  let maxX = -Infinity,
+    maxY = -Infinity,
+    maxZ = -Infinity;
+
+  for (const point of sealBehaviourData) {
+    minX = Math.min(minX, Number(point.x));
+    minY = Math.min(minY, Number(point.y));
+    minZ = Math.min(minZ, Number(point.z));
+
+    maxX = Math.max(maxX, Number(point.x));
+    maxY = Math.max(maxY, Number(point.y));
+    maxZ = Math.max(maxZ, Number(point.z));
+  }
+
+  const centerX = (minX + maxX) / 2;
+  const centerY = (minY + maxY) / 2;
+  const centerZ = (minZ + maxZ) / 2;
+
+  const boundingBoxSize = new THREE.Vector3(
+    maxX - minX,
+    maxY - minY,
+    maxZ - minZ
+  );
+  const distance =
+    Math.max(boundingBoxSize.x, boundingBoxSize.y, boundingBoxSize.z) * 1.5;
   // creating instance for camera, clock and scene.
   camera = new THREE.PerspectiveCamera(
     45,
     window.innerWidth / window.innerHeight,
-    1,
+    0.1,
     1000
   );
-  camera.position.set(5, 1, 1);
-  camera.lookAt(0, 1, 0);
+  // Set the camera's position and look at the target
+  camera.position.set(centerX, centerY, centerZ + distance);
+  camera.lookAt(centerX, centerY, centerZ);
+  // camera.position.set(5, 1, 1);
+  // camera.lookAt(0, 1, 0);
 
   camera2 = new THREE.PerspectiveCamera(
     45,
     window.innerWidth / window.innerHeight,
-    1,
+    0.1,
     1000
   );
   camera2.position.copy(camera.position);
-  camera2.lookAt(0, 1, 0);
+  // camera2.lookAt(targetPosition);
+  camera2.lookAt(centerX, centerY, centerZ);
 
   controls = new OrbitControls(camera, renderer.domElement);
   controls.minDistance = 10;
-  controls.maxDistance = 100;
+  controls.maxDistance = 1000;
 
   clock = new THREE.Clock();
 
@@ -226,6 +262,16 @@ function init() {
       });
       model.rotation.x = -Math.PI / 2;
       //
+
+      const boundingBox = new THREE.Box3().setFromObject(model);
+
+      width = boundingBox.max.x - boundingBox.min.x;
+      height = boundingBox.max.y - boundingBox.min.y;
+      depth = boundingBox.max.z - boundingBox.min.z;
+
+      halfWidth = width / 2;
+      halfHeight = height / 2;
+      halfDepth = depth / 2;
 
       skeleton = new THREE.SkeletonHelper(model);
       skeleton.visible = false;
@@ -711,11 +757,16 @@ function init() {
 
       animate();
 
-      var gridHelper = new THREE.GridHelper(216, 216);
+      var gridHelper = new THREE.GridHelper(
+        sealBehaviourData.length,
+        sealBehaviourData.length
+      );
       gridHelper.rotation.x = 0.04;
       gridHelper.rotation.y = 0;
       gridHelper.rotation.z = 0;
-      scene.add(gridHelper);
+      const gridLod = new THREE.LOD();
+      gridLod.addLevel(gridHelper, 20);
+      scene.add(gridLod);
 
       var axesHelper = new THREE.AxesHelper(10);
       scene.add(axesHelper);
@@ -727,9 +778,9 @@ function init() {
         rotationMatrix,
         nextPoint,
         currentPosition;
-      let dampingFactor = 0.1,
+      let dampingFactor = 1,
         desiredCameraPosition,
-        cameraDistance = 14; // Adjust the distance as needed
+        cameraDistance = 10; // Adjust the distance as needed
       function moveGeometryToCoordinates(j) {
         // Calculate the closest point on the path to the target coordinates
         let fraction = 0;
@@ -745,14 +796,31 @@ function init() {
           model.lookAt(nextPoint);
           model.position.copy(closestPoint);
 
-          desiredCameraPosition = new THREE.Vector3(
-            0,
-            cameraDistance,
-            -cameraDistance
-          ).add(model.position);
+          // Calculate the center position
+          // let centerX = Number(closestPoint.x) + halfWidth; // Adjusted for the object's width
+          // let centerY = Number(closestPoint.y) + halfHeight; // Adjusted for the object's height
+          // let centerZ = Number(closestPoint.z) + halfDepth; // Adjusted for the object's depth
+
+          // console.log("center", centerX, centerY, centerZ);
+
+          const target = model.position.clone();
+
+          // desiredCameraPosition = new THREE.Vector3(
+          //   0,
+          //   cameraDistance,
+          //   -cameraDistance
+          // ).add(model.position);
+          desiredCameraPosition = target.add(
+            new THREE.Vector3(cameraDistance, 0, 0)
+          );
+
+          // console.log("desiredCameraPosition", desiredCameraPosition);
           // Smoothly interpolate the camera's position towards the desired position
           camera.position.lerp(desiredCameraPosition, dampingFactor);
-          camera.lookAt(model.position);
+          camera.lookAt(target);
+
+          // camera.lookAt(centerX, centerY, centerZ);
+          // camera.lookAt(model.position);
           renderer.render(scene, camera);
           fraction = fraction + 1;
         }
