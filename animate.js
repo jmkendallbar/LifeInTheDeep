@@ -53,7 +53,7 @@ export default function animate() {
 
   // stats.update();
 
-  controls.update();
+  // controls.update();
   // renderer.render(scene, camera);
 
   // start ----------
