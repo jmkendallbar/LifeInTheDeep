@@ -54,7 +54,7 @@ export let line, camera2;
 let line1;
 export let matLine, matLineBasic, matLineDashed;
 export let gpuPanel;
-// let gui;
+export let gui;
 
 // viewport
 export let inset = {
@@ -87,7 +87,7 @@ let isStart = true;
 let length = 0;
 // let prevValue;
 
-let playSpeed = 200;
+let playSpeed = 1000;
 let initialSeconds;
 let frequency;
 let minStroke, maxStroke;
@@ -444,32 +444,32 @@ function init() {
       // };
 
       playSpeedBtn.onclick = function () {
-        if (playSpeed === 300) {
-          playSpeed = 150;
+        if (playSpeed === 1000) {
+          playSpeed = 500;
           playSpeedBtn.innerText = "2x";
           clearInterval(timer);
           intervalFunction();
           modifyTimeScale(1.5);
-        } else if (playSpeed === 150) {
-          playSpeed = 75;
-          playSpeedBtn.innerText = "3x";
+        } else if (playSpeed === 500) {
+          playSpeed = 200;
+          playSpeedBtn.innerText = "5x";
           clearInterval(timer);
           intervalFunction();
           modifyTimeScale(2.5);
-        } else if (playSpeed === 75) {
-          playSpeed = 900;
-          playSpeedBtn.innerText = "0.25x";
+        } else if (playSpeed === 200) {
+          playSpeed = 100;
+          playSpeedBtn.innerText = "10x";
           clearInterval(timer);
           intervalFunction();
           modifyTimeScale(0.25);
-        } else if (playSpeed === 900) {
-          playSpeed = 600;
-          playSpeedBtn.innerText = "0.5x";
+        } else if (playSpeed === 100) {
+          playSpeed = 10;
+          playSpeedBtn.innerText = "100x";
           clearInterval(timer);
           intervalFunction();
           modifyTimeScale(0.5);
         } else {
-          playSpeed = 300;
+          playSpeed = 1000;
           playSpeedBtn.innerText = "1x";
           clearInterval(timer);
           intervalFunction();
@@ -771,6 +771,7 @@ function init() {
           }
         }, [playSpeed]);
       }
+      // initGui();
       // END SUR
     }
   );
