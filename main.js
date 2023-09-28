@@ -29,7 +29,7 @@ let seal = [];
 
 // Create an array of Promises for importing each file
 var xyz;
-for (xyz = 85; xyz <= 87; xyz++) {
+for (xyz = 85; xyz <= 86; xyz++) {
   importPromises.push(import(`./seal-info/batch_${xyz}.json`));
 }
 
@@ -739,7 +739,10 @@ function init() {
             closestPointOnRotatedTrack.applyMatrix4(rotationMatrix);
 
           nextPoint = currentPosition.applyMatrix4(rotationMatrix);
-          model.lookAt(nextPoint);
+          model.rotation.x = Number(sealBehaviourData[j].pitch);
+          model.rotation.z = Number(sealBehaviourData[j].roll);
+          model.rotation.y = Number(sealBehaviourData[j].heading);
+          // model.lookAt(nextPoint);
           model.position.copy(closestPoint);
 
           const target = model.position.clone();
