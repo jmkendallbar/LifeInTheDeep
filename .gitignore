@@ -10,6 +10,7 @@
 # node_module
 /node_modules
 /dist
+/data
 
 # Precompiled Headers
 *.gch
