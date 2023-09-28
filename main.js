@@ -726,7 +726,7 @@ function init() {
         currentPosition;
       let dampingFactor = 1,
         desiredCameraPosition,
-        cameraDistance = 14; // Adjust the distance as needed
+        cameraDistance = 25; // Adjust the distance as needed
       function moveGeometryToCoordinates(j) {
         // Calculate the closest point on the path to the target coordinates
         let fraction = 0;

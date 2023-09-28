@@ -73,7 +73,7 @@ export default function elementStyle() {
   minuteEle.textContent = "MINUTES INTO DIVE";
   minuteEle.style.position = "absolute";
   minuteEle.style.width = "160px";
-  minuteEle.style.bottom = "110px";
+  minuteEle.style.bottom = "310px";
   minuteEle.style.left = "60px";
   minuteEle.style.color = "#fff";
   minuteEle.style.fontSize = "28px";
@@ -94,7 +94,7 @@ export default function elementStyle() {
   stateEle.style.width = "170px";
   stateEle.style.position = "absolute";
   stateEle.style.textAlign = "center";
-  stateEle.style.top = "238px";
+  stateEle.style.top = "138px";
   stateEle.style.left = "60px";
   stateEle.style.color = "#fff";
   stateEle.style.fontSize = "20px";

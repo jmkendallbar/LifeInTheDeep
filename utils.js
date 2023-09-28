@@ -191,8 +191,8 @@ export function onWindowResize() {
 
   renderer.setSize(window.innerWidth, window.innerHeight);
 
-  inset.insetWidth = window.innerHeight / 4; // square
-  inset.insetHeight = window.innerHeight / 4;
+  inset.insetWidth = window.innerHeight / 3; // square
+  inset.insetHeight = window.innerHeight / 3;
 
   camera2.aspect = inset.insetWidth / inset.insetHeight;
   camera2.updateProjectionMatrix();
