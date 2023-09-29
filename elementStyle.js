@@ -96,7 +96,7 @@ export default function elementStyle() {
   stateEle.style.textAlign = "center";
   stateEle.style.top = "138px";
   stateEle.style.left = "60px";
-  stateEle.style.color = "#fff";
+  stateEle.style.color = "#000";
   stateEle.style.fontSize = "20px";
   stateEle.style.fontFamily = "system-ui";
   stateEle.style.backgroundColor = "#4f7942";
@@ -105,7 +105,7 @@ export default function elementStyle() {
   stateEle.style.paddingBottom = "16px";
   stateEle.style.paddingLeft = "30px";
   stateEle.style.paddingRight = "30px";
-  stateEle.style.border = "4px solid #fff";
+  stateEle.style.border = "4px solid #000";
 
   // play speed button
   playSpeedBtn.type = "button";
