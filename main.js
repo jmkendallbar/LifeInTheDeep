@@ -30,7 +30,7 @@ let seal = [];
 
 // Create an array of Promises for importing each file
 var xyz;
-for (xyz = 85; xyz <= 86; xyz++) {
+for (xyz = 85; xyz <= 87; xyz++) {
   importPromises.push(import(`./seal-info/batch_${xyz}.json`));
 }
 
@@ -86,6 +86,7 @@ export let sealBehaviourData = [];
 export let lastIndex;
 let isStart = true;
 let length = 0;
+export let gridHelper;
 // let prevValue;
 
 let playSpeed = 1000;
@@ -648,7 +649,7 @@ function init() {
 
       matLine = new LineMaterial({
         color: 0xffffff,
-        linewidth: 10, // in world units with size attenuation, pixels otherwise
+        linewidth: 5, // in world units with size attenuation, pixels otherwise
         vertexColors: true,
 
         //resolution:  // to be set by renderer, eventually
@@ -717,10 +718,11 @@ function init() {
 
       animate();
 
-      var gridHelper = new THREE.GridHelper(1000, 1000);
+      gridHelper = new THREE.GridHelper(1000, 500);
       gridHelper.rotation.x = 0.04;
       gridHelper.rotation.y = 0;
       gridHelper.rotation.z = 0;
+      gridHelper.position.set(0, 0, 0);
       const gridLod = new THREE.LOD();
       gridLod.addLevel(gridHelper, 20);
       scene.add(gridLod);

@@ -6,6 +6,7 @@ import {
   camera,
   renderer,
   scene,
+  gridHelper,
 } from "./main.js";
 
 export default function moveGeometryToCoordinates(j) {
@@ -32,6 +33,16 @@ export default function moveGeometryToCoordinates(j) {
     model.rotation.y = Number(sealBehaviourData[j].heading);
     // model.lookAt(nextPoint);
     model.position.copy(closestPoint);
+
+    // Update the grid's position to be parallel to the moving object
+    const xOffset = model.position.x - gridHelper.position.x;
+    const yOffset = model.position.z - gridHelper.position.z;
+    // const zOffset = model.position.y - gridHelper.position.y;
+    gridHelper.position.set(
+      gridHelper.position.x + xOffset,
+      0,
+      gridHelper.position.z + yOffset
+    );
 
     const target = model.position.clone();
 
