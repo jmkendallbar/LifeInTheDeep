@@ -22,6 +22,7 @@ import { GPUStatsPanel } from "three/addons/utils/GPUStatsPanel.js";
 import { Line2 } from "three/addons/lines/Line2.js";
 import { LineMaterial } from "three/addons/lines/LineMaterial.js";
 import { LineGeometry } from "three/addons/lines/LineGeometry.js";
+import moveGeometryToCoordinates from "./moveGeometryToCoordinates";
 
 const importPromises = [];
 let seal = [];
@@ -106,7 +107,8 @@ export let rangeSlider,
   pauseBtn,
   cropBtn,
   playBtn,
-  resetBtn;
+  resetBtn,
+  pointsPath;
 
 // This is the intializing function when the website will load first
 // init();
@@ -183,10 +185,10 @@ function init() {
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x33567d);
-  scene.fog = new THREE.Fog(0x33567d, 10, 50);
+  scene.fog = new THREE.Fog(0x33567d, 100, 100);
 
   const hemiLight = new THREE.HemisphereLight(0x33567d, 0x33567d, 3);
-  hemiLight.position.set(0, 20, 0);
+  hemiLight.position.set(0, 100, 0);
   scene.add(hemiLight);
 
   const dirLight = new THREE.DirectionalLight(0x33567d, 3);
@@ -520,6 +522,15 @@ function init() {
         const prevState =
           sealBehaviourData[Number(prevValue) * Number(frequency)];
         stateEle.innerText = currentState?.Simple_Sleep_Code;
+        stateEle.style.backgroundColor =
+          currentState?.Simple_Sleep_Code === "Active Waking"
+            ? "#296E85"
+            : currentState?.Simple_Sleep_Code === "SWS"
+            ? "#DAF7A6"
+            : currentState?.Simple_Sleep_Code === "REM" ||
+              currentState?.Simple_Sleep_Code === "Quiet Waking"
+            ? "#FFFF66"
+            : "";
         heartInnerText.innerText = `${Number(currentState.Heart_Rate)?.toFixed(
           2
         )}bpm`;
@@ -574,7 +585,7 @@ function init() {
 
       // end --------------------
 
-      const pointsPath = new THREE.CurvePath();
+      pointsPath = new THREE.CurvePath();
 
       sealBehaviourData.forEach((item, index) => {
         if (index < sealBehaviourData.length - 1) {
@@ -717,47 +728,6 @@ function init() {
       var axesHelper = new THREE.AxesHelper(10);
       scene.add(axesHelper);
       axesHelper.rotation.x = -Math.PI / 2;
-
-      // Function to move the geometry to the specified X, Y, Z coordinates
-      let closestPoint,
-        closestPointOnRotatedTrack,
-        rotationMatrix,
-        nextPoint,
-        currentPosition;
-      let dampingFactor = 1,
-        desiredCameraPosition,
-        cameraDistance = 25; // Adjust the distance as needed
-      function moveGeometryToCoordinates(j) {
-        // Calculate the closest point on the path to the target coordinates
-        let fraction = 0;
-        while (fraction < 1) {
-          closestPointOnRotatedTrack =
-            pointsPath.curves[j].getPointAt(fraction);
-          currentPosition = pointsPath.curves[j].getPointAt(fraction + 1); // You can adjust the fraction value
-          rotationMatrix = new THREE.Matrix4().makeRotationX(-Math.PI / 2); // Use the same rotation value
-          closestPoint =
-            closestPointOnRotatedTrack.applyMatrix4(rotationMatrix);
-
-          nextPoint = currentPosition.applyMatrix4(rotationMatrix);
-          model.rotation.x = Number(sealBehaviourData[j].pitch);
-          model.rotation.z = Number(sealBehaviourData[j].roll);
-          model.rotation.y = Number(sealBehaviourData[j].heading);
-          // model.lookAt(nextPoint);
-          model.position.copy(closestPoint);
-
-          const target = model.position.clone();
-
-          desiredCameraPosition = target.add(
-            new THREE.Vector3(0, 3, cameraDistance)
-          );
-
-          // Smoothly interpolate the camera's position towards the desired position
-          camera.position.lerp(desiredCameraPosition, dampingFactor);
-          camera.lookAt(target);
-          renderer.render(scene, camera);
-          fraction = fraction + 1;
-        }
-      }
 
       function intervalFunction() {
         timer = setInterval(() => {
