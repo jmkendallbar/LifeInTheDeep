@@ -13,7 +13,7 @@ import {
   prepareCrossFade,
 } from "./utils.js";
 import animate from "./animate";
-// import drawGraph from "./graph";
+import drawGraph from "./graph";
 import elementStyle from "./elementStyle";
 import appendElement from "./appendElement";
 
@@ -129,20 +129,20 @@ function init() {
   length = sealBehaviourData.length / frequency;
   lastIndex = (length - 1) * frequency;
 
-  // const xArray = sealBehaviourData.map((item) => {
-  //   return Number(item.Seconds) / 60;
-  // });
-  // const yArray = sealBehaviourData.map((item) => {
-  //   return Number(item.Stroke_Rate);
-  // });
+  const xArray = sealBehaviourData.map((item) => {
+    return Number(item.Seconds) / 60;
+  });
+  const yArray = sealBehaviourData.map((item) => {
+    return Number(item.Stroke_Rate);
+  });
 
-  // minStroke = sealBehaviourData.reduce(function (prev, curr) {
-  //   return Number(prev.Stroke_Rate) < Number(curr.Stroke_Rate) ? prev : curr;
-  // });
+  minStroke = sealBehaviourData.reduce(function (prev, curr) {
+    return Number(prev.Stroke_Rate) < Number(curr.Stroke_Rate) ? prev : curr;
+  });
 
-  // maxStroke = sealBehaviourData.reduce(function (prev, curr) {
-  //   return Number(prev.Stroke_Rate) > Number(curr.Stroke_Rate) ? prev : curr;
-  // });
+  maxStroke = sealBehaviourData.reduce(function (prev, curr) {
+    return Number(prev.Stroke_Rate) > Number(curr.Stroke_Rate) ? prev : curr;
+  });
 
   // const plotData = drawGraph(
   //   xArray,
@@ -154,6 +154,103 @@ function init() {
   // );
 
   // Plotly.newPlot("chartDiv", plotData.data, plotData.layout);
+  var i, j, t, x, y, name;
+  var frames = [];
+  var nFrames = sealBehaviourData.length / 2;
+  var n = sealBehaviourData.length;
+  var reverseFrames = [];
+
+  for (i = 0; i < nFrames; i++) {
+    var fill = 10 + (0.9 * i) / (nFrames - 1);
+    y = [Number(minStroke.Stroke_Rate)];
+    x = [Number(sealBehaviourData[3].Seconds) / 60];
+
+    // A wave across the top:
+    for (j = 0; j < n; j++) {
+      t = j / (n - 1);
+      x.push(fill + 10);
+      y.push(Number(minStroke.Stroke_Rate) - fill + (2 + 2 * fill) * t);
+    }
+
+    // Close the loop to draw the water:
+    x.push(
+      Number(sealBehaviourData[3].Seconds) / 60,
+      Number(sealBehaviourData[3].Seconds) / 60
+    );
+    y.push(Number(maxStroke.Stroke_Rate), Number(minStroke.Stroke_Rate));
+
+    // Choose a name:
+    name = "frame" + i;
+
+    // Store it in an array so we can animate in reverse order:
+    reverseFrames.unshift(name);
+
+    // Create the frame:
+    frames.push({
+      name: name,
+      data: [{ x: x, y: y }],
+      group: i < nFrames / 2 ? "lower" : "upper",
+    });
+  }
+
+  Plotly.plot(
+    "graph",
+    [
+      {
+        // Set up the initial water:
+        x: frames[0].data[0].x,
+        y: frames[0].data[0].y,
+        mode: "lines",
+        fill: "toself",
+        showlegend: false,
+        line: { simplify: false },
+      },
+      {
+        // Draw a glass:
+        x: xArray,
+        y: yArray,
+        mode: "markers",
+        // fill: "toself",
+        // showlegend: false,
+        // fillcolor: "rgba(0, 0, 0, 0.1)",
+        // line: { color: "rgba(100,100,10,0.7)" },
+      },
+    ],
+    {
+      xaxis: {
+        range: [
+          Number(sealBehaviourData[0].Seconds) / 60,
+          Number(sealBehaviourData[lastIndex].Seconds) / 60,
+        ],
+      },
+      yaxis: {
+        range: [Number(minStroke.Stroke_Rate), Number(maxStroke.Stroke_Rate)],
+      },
+    },
+    { showSendToCloud: true }
+  ).then(function () {
+    // Add the frames so we can animate them:
+    Plotly.addFrames("graph", frames);
+  });
+
+  // Stop the animation by animating to an empty set of frames:
+  function stopAnimation() {
+    Plotly.animate("graph", [], { mode: "next" });
+  }
+
+  function startAnimation(groupOrFrames, mode) {
+    Plotly.animate("graph", groupOrFrames, {
+      transition: {
+        duration: 500,
+        easing: "linear",
+      },
+      frame: {
+        duration: 500,
+        redraw: false,
+      },
+      mode: mode,
+    });
+  }
   // plotly chart --end
 
   // this is the container div where we are showing the overall UI video.
@@ -257,6 +354,7 @@ function init() {
       cropBtn = document.getElementById("crop-icon");
       playBtn = document.getElementById("play-icon");
       resetBtn = document.getElementById("reset-icon");
+      let upperBtn = document.getElementById("upper");
       strokeEle = document.createElement("span");
       strokeInnerText = document.createElement("span");
       heartEle = document.createElement("span");
@@ -281,6 +379,10 @@ function init() {
       // When the user clicks the button, open the modal
       cropBtn.onclick = function () {
         modal.style.display = "block";
+      };
+
+      upperBtn.onclick = function () {
+        startAnimation("upper", "immediate");
       };
 
       // When the user clicks on <span> (x), close the modal
@@ -395,71 +497,71 @@ function init() {
         cameraDistance++;
       };
 
-      // confirmDuration.onclick = function () {
-      //   clearInterval(timer);
-      //   if (playBtn.style.display === "block") {
-      //     pauseContinue();
-      //     isTimerStop = true;
-      //     pauseBtn.style.display = "block";
-      //     playBtn.style.display = "none";
-      //   }
-      //   let xArray1 = sealBehaviourData.filter((item) => {
-      //     if (
-      //       sliderOne.value <= Number(item.Seconds) &&
-      //       sliderTwo.value >= Number(item.Seconds)
-      //     ) {
-      //       return item;
-      //     }
-      //   });
+      confirmDuration.onclick = function () {
+        clearInterval(timer);
+        if (playBtn.style.display === "block") {
+          pauseContinue();
+          isTimerStop = true;
+          pauseBtn.style.display = "block";
+          playBtn.style.display = "none";
+        }
+        let xArray1 = sealBehaviourData.filter((item) => {
+          if (
+            sliderOne.value <= Number(item.Seconds) &&
+            sliderTwo.value >= Number(item.Seconds)
+          ) {
+            return item;
+          }
+        });
 
-      //   // initialSeconds = xArray1[0].Seconds;
-      //   let startIndex = sealBehaviourData
-      //     .map((item) => {
-      //       if (sliderOne.value === item.Seconds.toString()) {
-      //         return Number(item.Seconds);
-      //       }
-      //     })
-      //     .indexOf(Number(sliderOne.value));
-      //   let endIndex = sealBehaviourData
-      //     .map((item) => {
-      //       if (sliderTwo.value === item.Seconds.toString()) {
-      //         return Number(item.Seconds);
-      //       }
-      //     })
-      //     .indexOf(Number(sliderTwo.value));
-      //   length = (xArray1.length - 1) / frequency;
-      //   rangeSlider.min = startIndex;
-      //   rangeSlider.value = startIndex;
-      //   rangeSlider.defaultValue = startIndex;
-      //   rangeSlider.max = endIndex;
-      //   modal.style.display = "none";
+        // initialSeconds = xArray1[0].Seconds;
+        let startIndex = sealBehaviourData
+          .map((item) => {
+            if (sliderOne.value === item.Seconds.toString()) {
+              return Number(item.Seconds);
+            }
+          })
+          .indexOf(Number(sliderOne.value));
+        let endIndex = sealBehaviourData
+          .map((item) => {
+            if (sliderTwo.value === item.Seconds.toString()) {
+              return Number(item.Seconds);
+            }
+          })
+          .indexOf(Number(sliderTwo.value));
+        length = (xArray1.length - 1) / frequency;
+        rangeSlider.min = startIndex;
+        rangeSlider.value = startIndex;
+        rangeSlider.defaultValue = startIndex;
+        rangeSlider.max = endIndex;
+        modal.style.display = "none";
 
-      //   // after loaded and data this function will call
-      //   intervalFunction();
+        // after loaded and data this function will call
+        intervalFunction();
 
-      //   minStroke = xArray1.reduce(function (prev, curr) {
-      //     return Number(prev.Stroke_Rate) < Number(curr.Stroke_Rate)
-      //       ? prev
-      //       : curr;
-      //   });
+        minStroke = xArray1.reduce(function (prev, curr) {
+          return Number(prev.Stroke_Rate) < Number(curr.Stroke_Rate)
+            ? prev
+            : curr;
+        });
 
-      //   maxStroke = xArray1.reduce(function (prev, curr) {
-      //     return Number(prev.Stroke_Rate) > Number(curr.Stroke_Rate)
-      //       ? prev
-      //       : curr;
-      //   });
+        maxStroke = xArray1.reduce(function (prev, curr) {
+          return Number(prev.Stroke_Rate) > Number(curr.Stroke_Rate)
+            ? prev
+            : curr;
+        });
 
-      //   const updatePlotData = drawGraph(
-      //     xArray1,
-      //     xArray1,
-      //     minStroke,
-      //     maxStroke,
-      //     xArray1.length - 1,
-      //     xArray1
-      //   );
+        const updatePlotData = drawGraph(
+          xArray1,
+          xArray1,
+          minStroke,
+          maxStroke,
+          xArray1.length - 1,
+          xArray1
+        );
 
-      //   Plotly.update("chartDiv", updatePlotData.data, updatePlotData.layout);
-      // };
+        Plotly.update("chartDiv", updatePlotData.data, updatePlotData.layout);
+      };
 
       playSpeedBtn.onclick = function () {
         if (playSpeed === 1000) {
@@ -550,9 +652,10 @@ function init() {
         heartInnerText.innerText = `${Number(currentState.Heart_Rate)?.toFixed(
           2
         )}bpm`;
-        strokeInnerText.innerText = `${Number(
-          currentState.Stroke_Rate
-        )?.toFixed(2)}spm`;
+        // strokeInnerText.innerText = `${Number(
+        //   currentState.Stroke_Rate
+        // )?.toFixed(2)}spm`;
+        strokeInnerText.innerText = `${currentState.pitch} pitch`;
         minuteEle.innerText = `MINUTES INTO DIVE ${currentState.Seconds.toString().toHHMMSS()}`;
         depthEle.innerText = `DEPTH ${Number(currentState["Depth"])?.toFixed(
           2

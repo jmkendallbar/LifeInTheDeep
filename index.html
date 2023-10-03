@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
 
-    <title>My first three.js app</title>
+    <title>Visualizing mammal's in the deep</title>
     <style>
       body {
         margin: 0;
@@ -109,6 +109,12 @@
       }
       #slider-2 {
         background-color: #add8e6;
+      }
+      #buttons {
+        position: absolute;
+        top: 40px;
+        left: 10px;
+        z-index: 1;
       }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -230,12 +236,34 @@
         </div>
       </div>
     </div>
-
-    <script
-      type="text/javascript"
-      src="https://code.jscharting.com/latest/jscharting.js"
-    ></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js"></script> -->
+    <div id="graph"></div>
+    <div id="buttons">
+      <code>group:</code>
+      <button onclick="startAnimation(null, 'immediate');">
+        <code>null</code> (all frames)
+      </button>
+      <button onclick="startAnimation(reverseFrames, 'immediate');">
+        <code>[frames in reverse]</code>
+      </button>
+      <button onclick="stopAnimation();"><code>[]</code> (stop)</button>
+      <button onclick="startAnimation('lower', 'immediate');">
+        <code>'lower'</code>
+      </button>
+      <button id="upper">
+        <code>'upper'</code>
+      </button>
+      <br />
+      <code>mode:</code>
+      <button onclick="startAnimation(null, 'immediate');">
+        <code>'immediate'</code>
+      </button>
+      <button onclick="startAnimation(null, 'next');">
+        <code>'next'</code>
+      </button>
+      <button onclick="startAnimation(null, 'afterall');">
+        <code>'afterall'</code>
+      </button>
+    </div>
   </body>
 </html>
