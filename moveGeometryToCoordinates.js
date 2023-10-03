@@ -7,6 +7,7 @@ import {
   renderer,
   scene,
   gridHelper,
+  cameraDistance,
 } from "./main.js";
 
 export default function moveGeometryToCoordinates(j) {
@@ -17,8 +18,7 @@ export default function moveGeometryToCoordinates(j) {
     nextPoint,
     currentPosition;
   let dampingFactor = 1,
-    desiredCameraPosition,
-    cameraDistance = 25; // Adjust the distance as needed
+    desiredCameraPosition;
   // Calculate the closest point on the path to the target coordinates
   let fraction = 0;
   while (fraction < 1) {
