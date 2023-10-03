@@ -94,6 +94,7 @@ let initialSeconds;
 let frequency;
 let minStroke, maxStroke;
 let prevValue;
+export let cameraDistance = 25;
 // Element Variables
 export let rangeSlider,
   strokeEle,
@@ -109,6 +110,8 @@ export let rangeSlider,
   cropBtn,
   playBtn,
   resetBtn,
+  zoomInBtn,
+  zoomOutBtn,
   pointsPath;
 
 // This is the intializing function when the website will load first
@@ -263,6 +266,8 @@ function init() {
       stateEle = document.createElement("span");
       playSpeedBtn = document.createElement("button");
       confirmDuration = document.getElementById("confirmClip");
+      zoomInBtn = document.createElement("button");
+      zoomOutBtn = document.createElement("button");
 
       // timeline crop video's code start from here
       cropBtn.id = "cropBtnId";
@@ -378,6 +383,16 @@ function init() {
       resetBtn.style.cursor = "pointer";
       resetBtn.onclick = function () {
         rangeSlider.value = rangeSlider.min;
+      };
+
+      // zoom in button
+      zoomInBtn.onclick = function () {
+        cameraDistance--;
+      };
+
+      // zoom in button
+      zoomOutBtn.onclick = function () {
+        cameraDistance++;
       };
 
       // confirmDuration.onclick = function () {
@@ -649,7 +664,7 @@ function init() {
 
       matLine = new LineMaterial({
         color: 0xffffff,
-        linewidth: 5, // in world units with size attenuation, pixels otherwise
+        linewidth: 1, // in world units with size attenuation, pixels otherwise
         vertexColors: true,
 
         //resolution:  // to be set by renderer, eventually

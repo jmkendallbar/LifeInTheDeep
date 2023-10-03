@@ -9,6 +9,8 @@ import {
   depthEle,
   stateEle,
   playSpeedBtn,
+  zoomInBtn,
+  zoomOutBtn,
 } from "./main";
 
 export default function elementStyle() {
@@ -116,9 +118,36 @@ export default function elementStyle() {
   playSpeedBtn.style.borderRadius = "8px";
   playSpeedBtn.style.bottom = "16px";
   playSpeedBtn.style.left = "160px";
-  playSpeedBtn.style.color = "#fff";
   playSpeedBtn.style.color = "#000";
   playSpeedBtn.style.cursor = "pointer";
   playSpeedBtn.style.fontFamily = "system-ui";
   playSpeedBtn.style.border = "1px solid #fff";
+
+  // zoom in button
+  zoomInBtn.type = "button";
+  zoomInBtn.innerText = "+";
+  zoomInBtn.style.position = "absolute";
+  zoomInBtn.style.width = "40px";
+  zoomInBtn.style.height = "30px";
+  zoomInBtn.style.borderRadius = "8px";
+  zoomInBtn.style.bottom = "16px";
+  zoomInBtn.style.left = "350px";
+  zoomInBtn.style.color = "#000";
+  zoomInBtn.style.cursor = "pointer";
+  zoomInBtn.style.fontFamily = "system-ui";
+  zoomInBtn.style.border = "1px solid #fff";
+
+  // zoom out button
+  zoomOutBtn.type = "button";
+  zoomOutBtn.innerText = "-";
+  zoomOutBtn.style.position = "absolute";
+  zoomOutBtn.style.width = "40px";
+  zoomOutBtn.style.height = "30px";
+  zoomOutBtn.style.borderRadius = "8px";
+  zoomOutBtn.style.bottom = "16px";
+  zoomOutBtn.style.left = "300px";
+  zoomOutBtn.style.color = "#000";
+  zoomOutBtn.style.cursor = "pointer";
+  zoomOutBtn.style.fontFamily = "system-ui";
+  zoomOutBtn.style.border = "1px solid #fff";
 }

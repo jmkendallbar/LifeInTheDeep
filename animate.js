@@ -85,8 +85,8 @@ export default function animate() {
   renderer.setScissor(80, 80, inset.insetWidth, inset.insetHeight);
 
   renderer.setViewport(
-    -860,
-    -620,
+    -inset.insetWidth * 4,
+    -inset.insetHeight * 3,
     inset.insetWidth * 10,
     inset.insetHeight * 10
   );
