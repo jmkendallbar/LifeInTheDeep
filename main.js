@@ -93,7 +93,7 @@ let playSpeed = 1000;
 let initialSeconds;
 let frequency;
 let minStroke, maxStroke;
-let prevValue;
+let prevValue = 0;
 export let cameraDistance = 25;
 // Element Variables
 export let rangeSlider,
@@ -154,105 +154,65 @@ function init() {
   // );
 
   // Plotly.newPlot("chartDiv", plotData.data, plotData.layout);
-  var i, j, t, x, y, name;
+  // plotly chart --end
   var frames = [];
-  var nFrames = sealBehaviourData.length / 2;
+  var x = xArray;
+  var y = yArray;
+
   var n = sealBehaviourData.length;
-  var reverseFrames = [];
-
-  for (i = 0; i < nFrames; i++) {
-    var fill = 10 + (0.9 * i) / (nFrames - 1);
-    y = [Number(minStroke.Stroke_Rate)];
-    x = [Number(sealBehaviourData[3].Seconds) / 60];
-
-    // A wave across the top:
-    for (j = 0; j < n; j++) {
-      t = j / (n - 1);
-      x.push(fill + 10);
-      y.push(Number(minStroke.Stroke_Rate) - fill + (2 + 2 * fill) * t);
-    }
-
-    // Close the loop to draw the water:
-    x.push(
-      Number(sealBehaviourData[3].Seconds) / 60,
-      Number(sealBehaviourData[3].Seconds) / 60
-    );
-    y.push(Number(maxStroke.Stroke_Rate), Number(minStroke.Stroke_Rate));
-
-    // Choose a name:
-    name = "frame" + i;
-
-    // Store it in an array so we can animate in reverse order:
-    reverseFrames.unshift(name);
-
-    // Create the frame:
-    frames.push({
-      name: name,
-      data: [{ x: x, y: y }],
-      group: i < nFrames / 2 ? "lower" : "upper",
-    });
+  for (var i = 0; i < n; i++) {
+    frames[i] = { data: [{ x: [], y: [] }] };
+    frames[i].data[0].x = x.slice(0, i + 1);
+    frames[i].data[0].y = y.slice(0, i + 1);
   }
-
-  Plotly.plot(
-    "graph",
+  Plotly.newPlot(
+    "chartDiv",
     [
       {
-        // Set up the initial water:
         x: frames[0].data[0].x,
         y: frames[0].data[0].y,
+        // fill: "toself",
+        // z: 2,
+        // mode: "markers",
         mode: "lines",
-        fill: "toself",
-        showlegend: false,
-        line: { simplify: false },
       },
       {
         // Draw a glass:
         x: xArray,
         y: yArray,
         mode: "markers",
-        // fill: "toself",
-        // showlegend: false,
-        // fillcolor: "rgba(0, 0, 0, 0.1)",
-        // line: { color: "rgba(100,100,10,0.7)" },
       },
     ],
     {
       xaxis: {
-        range: [
-          Number(sealBehaviourData[0].Seconds) / 60,
-          Number(sealBehaviourData[lastIndex].Seconds) / 60,
-        ],
+        type: "number",
+        range: [frames[0].data[0].x[0], frames[lastIndex].data[0].x[lastIndex]],
+        showgrid: false,
+        showline: false,
+        showticklabels: false,
+        zeroline: false,
+        title: "Time [min of dive]",
       },
       yaxis: {
         range: [Number(minStroke.Stroke_Rate), Number(maxStroke.Stroke_Rate)],
+        showgrid: false,
+        showline: false,
+        showticklabels: false,
+        zeroline: false,
+        title: "Stroke rate (spm)",
       },
-    },
-    { showSendToCloud: true }
+    }
   ).then(function () {
-    // Add the frames so we can animate them:
-    Plotly.addFrames("graph", frames);
-  });
-
-  // Stop the animation by animating to an empty set of frames:
-  function stopAnimation() {
-    Plotly.animate("graph", [], { mode: "next" });
-  }
-
-  function startAnimation(groupOrFrames, mode) {
-    Plotly.animate("graph", groupOrFrames, {
+    Plotly.animate("chartDiv", frames, {
       transition: {
-        duration: 500,
-        easing: "linear",
+        duration: playSpeed,
       },
       frame: {
-        duration: 500,
-        redraw: false,
+        duration: playSpeed,
+        // redraw: true,
       },
-      mode: mode,
     });
-  }
-  // plotly chart --end
-
+  });
   // this is the container div where we are showing the overall UI video.
   const container = document.getElementById("container");
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -381,9 +341,9 @@ function init() {
         modal.style.display = "block";
       };
 
-      upperBtn.onclick = function () {
-        startAnimation("upper", "immediate");
-      };
+      // upperBtn.onclick = function () {
+      // startAnimation(null, "immediate");
+      // };
 
       // When the user clicks on <span> (x), close the modal
       span.onclick = function () {
@@ -595,6 +555,43 @@ function init() {
           intervalFunction();
           modifyTimeScale(1.0);
         }
+        // Plotly.purge("chartDiv");
+        console.log("playSpeed", playSpeed);
+        const layout1 = {
+          xaxis: {
+            type: "number",
+            range: [
+              frames[0].data[0].x[0],
+              frames[lastIndex].data[0].x[lastIndex],
+            ],
+            showgrid: false,
+            showline: false,
+            showticklabels: false,
+            zeroline: false,
+            title: "Time [min of dive]",
+          },
+          yaxis: {
+            range: [
+              Number(minStroke.Stroke_Rate),
+              Number(maxStroke.Stroke_Rate),
+            ],
+            showgrid: false,
+            showline: false,
+            showticklabels: false,
+            zeroline: false,
+            title: "Stroke rate (spm)",
+          },
+        };
+        Plotly.plot("chartDiv", null, { layout: layout1 }).then(function () {
+          Plotly.animate("chartDiv", frames, {
+            transition: {
+              duration: playSpeed,
+            },
+            frame: {
+              duration: playSpeed,
+            },
+          });
+        });
       };
 
       // appending the child element into the DOM
@@ -652,10 +649,9 @@ function init() {
         heartInnerText.innerText = `${Number(currentState.Heart_Rate)?.toFixed(
           2
         )}bpm`;
-        // strokeInnerText.innerText = `${Number(
-        //   currentState.Stroke_Rate
-        // )?.toFixed(2)}spm`;
-        strokeInnerText.innerText = `${currentState.pitch} pitch`;
+        strokeInnerText.innerText = `${Number(
+          currentState.Stroke_Rate
+        )?.toFixed(2)}spm`;
         minuteEle.innerText = `MINUTES INTO DIVE ${currentState.Seconds.toString().toHHMMSS()}`;
         depthEle.innerText = `DEPTH ${Number(currentState["Depth"])?.toFixed(
           2
