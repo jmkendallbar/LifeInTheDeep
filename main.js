@@ -155,64 +155,58 @@ function init() {
 
   // Plotly.newPlot("chartDiv", plotData.data, plotData.layout);
   // plotly chart --end
-  var frames = [];
-  var x = xArray;
-  var y = yArray;
 
-  var n = sealBehaviourData.length;
-  for (var i = 0; i < n; i++) {
-    frames[i] = { data: [{ x: [], y: [] }] };
-    frames[i].data[0].x = x.slice(0, i + 1);
-    frames[i].data[0].y = y.slice(0, i + 1);
-  }
-  Plotly.newPlot(
+  // var cnt = 0;
+  var layout = {
+    xaxis: {
+      range: [
+        Number(sealBehaviourData[0].Seconds) / 60,
+        Number(sealBehaviourData[lastIndex].Seconds) / 60,
+      ], // Set the initial range for the x-axis
+    },
+    yaxis: {
+      range: [minStroke.Stroke_Rate, maxStroke.Stroke_Rate], // Set the initial range for the x-axis
+    },
+  };
+  Plotly.plot(
     "chartDiv",
     [
       {
-        x: frames[0].data[0].x,
-        y: frames[0].data[0].y,
-        // fill: "toself",
-        // z: 2,
-        // mode: "markers",
-        mode: "lines",
-      },
-      {
-        // Draw a glass:
-        x: xArray,
-        y: yArray,
-        mode: "markers",
+        x: [Number(sealBehaviourData[0].Seconds) / 60],
+        y: [sealBehaviourData[0].Stroke_Rate],
+        type: "markers",
+        type: "scatter",
+        // marker: {
+        //   color: "red", // Set the initial color for markers
+        // },
       },
     ],
-    {
-      xaxis: {
-        type: "number",
-        range: [frames[0].data[0].x[0], frames[lastIndex].data[0].x[lastIndex]],
-        showgrid: false,
-        showline: false,
-        showticklabels: false,
-        zeroline: false,
-        title: "Time [min of dive]",
+    layout
+  );
+
+  function extendTracePlot(value) {
+    Plotly.extendTraces(
+      "chartDiv",
+      {
+        x: [[Number(sealBehaviourData[value].Seconds) / 60]],
+        y: [[sealBehaviourData[value].Stroke_Rate]],
       },
-      yaxis: {
-        range: [Number(minStroke.Stroke_Rate), Number(maxStroke.Stroke_Rate)],
-        showgrid: false,
-        showline: false,
-        showticklabels: false,
-        zeroline: false,
-        title: "Stroke rate (spm)",
-      },
-    }
-  ).then(function () {
-    Plotly.animate("chartDiv", frames, {
-      transition: {
-        duration: playSpeed,
-      },
-      frame: {
-        duration: playSpeed,
-        // redraw: true,
-      },
-    });
-  });
+      [0]
+    );
+    // cnt++;
+    // if (cnt > 500) {
+    //   Plotly.relayout("chartDiv", {
+    //     xaxis: {
+    //       range: [
+    //         Number(sealBehaviourData[0].Seconds) / 60,
+    //         Number(sealBehaviourData[lastIndex].Seconds) / 60,
+    //       ],
+    //       title: "Time [min of dive]",
+    //     },
+    //   });
+    // }
+  }
+
   // this is the container div where we are showing the overall UI video.
   const container = document.getElementById("container");
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -555,43 +549,6 @@ function init() {
           intervalFunction();
           modifyTimeScale(1.0);
         }
-        // Plotly.purge("chartDiv");
-        console.log("playSpeed", playSpeed);
-        const layout1 = {
-          xaxis: {
-            type: "number",
-            range: [
-              frames[0].data[0].x[0],
-              frames[lastIndex].data[0].x[lastIndex],
-            ],
-            showgrid: false,
-            showline: false,
-            showticklabels: false,
-            zeroline: false,
-            title: "Time [min of dive]",
-          },
-          yaxis: {
-            range: [
-              Number(minStroke.Stroke_Rate),
-              Number(maxStroke.Stroke_Rate),
-            ],
-            showgrid: false,
-            showline: false,
-            showticklabels: false,
-            zeroline: false,
-            title: "Stroke rate (spm)",
-          },
-        };
-        Plotly.plot("chartDiv", null, { layout: layout1 }).then(function () {
-          Plotly.animate("chartDiv", frames, {
-            transition: {
-              duration: playSpeed,
-            },
-            frame: {
-              duration: playSpeed,
-            },
-          });
-        });
       };
 
       // appending the child element into the DOM
@@ -602,7 +559,30 @@ function init() {
       rangeSlider.onclick = function () {
         clearInterval(timer);
         intervalFunction();
-
+        layout = {
+          xaxis: {
+            range: [
+              Number(sealBehaviourData[rangeSlider.value].Seconds) / 60,
+              Number(sealBehaviourData[lastIndex].Seconds) / 60,
+            ], // Set the initial range for the x-axis
+          },
+          yaxis: {
+            range: [minStroke.Stroke_Rate, maxStroke.Stroke_Rate], // Set the initial range for the x-axis
+          },
+        };
+        Plotly.newPlot(
+          "chartDiv",
+          [
+            {
+              x: [Number(sealBehaviourData[rangeSlider.value].Seconds) / 60],
+              y: [sealBehaviourData[rangeSlider.value].Stroke_Rate],
+              type: "markers",
+              type: "scatter",
+            },
+          ],
+          layout
+        );
+        // extendTracePlot(rangeSlider.value);
         if (!isTimerStop) {
           isTimerStop = true;
           pauseContinue();
@@ -652,7 +632,10 @@ function init() {
         strokeInnerText.innerText = `${Number(
           currentState.Stroke_Rate
         )?.toFixed(2)}spm`;
-        minuteEle.innerText = `MINUTES INTO DIVE ${currentState.Seconds.toString().toHHMMSS()}`;
+        // minuteEle.innerText = `MINUTES INTO DIVE ${currentState.Seconds.toString().toHHMMSS()}`;
+        minuteEle.innerText = `MINUTES INTO DIVE ${Number(
+          currentState.Seconds / 60
+        ).toFixed(2)}`;
         depthEle.innerText = `DEPTH ${Number(currentState["Depth"])?.toFixed(
           2
         )}m`;
@@ -851,6 +834,7 @@ function init() {
             rangeSlider.value = rangeSlider.value * 1 + 1;
             currentStatus();
             moveGeometryToCoordinates(Number(rangeSlider.value));
+            extendTracePlot(rangeSlider.value);
           } else {
             clearInterval(timer);
             pauseContinue();
