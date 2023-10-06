@@ -82,9 +82,19 @@ export default function animate() {
 
   renderer.setScissorTest(true);
 
-  renderer.setScissor(60, 470, inset.insetWidth, inset.insetHeight);
+  renderer.setScissor(
+    60,
+    inset.insetHeight * 2,
+    inset.insetWidth,
+    inset.insetHeight
+  );
 
-  renderer.setViewport(-280, 430, inset.insetWidth * 4, inset.insetHeight * 4);
+  renderer.setViewport(
+    -310,
+    inset.insetHeight * 2,
+    inset.insetWidth * 4,
+    inset.insetHeight * 4
+  );
 
   camera2.position.copy(camera.position);
   camera2.quaternion.copy(camera.quaternion);
