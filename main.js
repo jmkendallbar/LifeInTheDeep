@@ -13,7 +13,7 @@ import {
   prepareCrossFade,
 } from "./utils.js";
 import animate from "./animate";
-// import drawGraph from "./graph";
+import drawGraph from "./graph";
 import elementStyle from "./elementStyle";
 import appendElement from "./appendElement";
 
@@ -103,6 +103,8 @@ export let rangeSlider,
   heartInnerText,
   minuteEle,
   depthEle,
+  depthInnerText,
+  minuteInnerText,
   stateEle,
   playSpeedBtn,
   confirmDuration,
@@ -129,31 +131,31 @@ function init() {
   length = sealBehaviourData.length / frequency;
   lastIndex = (length - 1) * frequency;
 
-  // const xArray = sealBehaviourData.map((item) => {
-  //   return Number(item.Seconds) / 60;
-  // });
-  // const yArray = sealBehaviourData.map((item) => {
-  //   return Number(item.Stroke_Rate);
-  // });
+  const xArray = sealBehaviourData.map((item) => {
+    return Number(item.Seconds) / 60;
+  });
+  const yArray = sealBehaviourData.map((item) => {
+    return Number(item.Stroke_Rate);
+  });
 
-  // minStroke = sealBehaviourData.reduce(function (prev, curr) {
-  //   return Number(prev.Stroke_Rate) < Number(curr.Stroke_Rate) ? prev : curr;
-  // });
+  minStroke = sealBehaviourData.reduce(function (prev, curr) {
+    return Number(prev.Stroke_Rate) < Number(curr.Stroke_Rate) ? prev : curr;
+  });
 
-  // maxStroke = sealBehaviourData.reduce(function (prev, curr) {
-  //   return Number(prev.Stroke_Rate) > Number(curr.Stroke_Rate) ? prev : curr;
-  // });
+  maxStroke = sealBehaviourData.reduce(function (prev, curr) {
+    return Number(prev.Stroke_Rate) > Number(curr.Stroke_Rate) ? prev : curr;
+  });
 
-  // const plotData = drawGraph(
-  //   xArray,
-  //   yArray,
-  //   minStroke,
-  //   maxStroke,
-  //   lastIndex,
-  //   sealBehaviourData
-  // );
+  const plotData = drawGraph(
+    xArray,
+    yArray,
+    minStroke,
+    maxStroke,
+    lastIndex,
+    sealBehaviourData
+  );
 
-  // Plotly.newPlot("chartDiv", plotData.data, plotData.layout);
+  Plotly.newPlot("chartDiv", plotData.data, plotData.layout);
   // plotly chart --end
 
   // this is the container div where we are showing the overall UI video.
@@ -173,7 +175,7 @@ function init() {
   );
 
   camera2 = new THREE.PerspectiveCamera(
-    45,
+    20,
     window.innerWidth / window.innerHeight,
     0.1,
     1000
@@ -262,7 +264,9 @@ function init() {
       heartEle = document.createElement("span");
       heartInnerText = document.createElement("span");
       minuteEle = document.createElement("span");
+      minuteInnerText = document.createElement("span");
       depthEle = document.createElement("span");
+      depthInnerText = document.createElement("span");
       stateEle = document.createElement("span");
       playSpeedBtn = document.createElement("button");
       confirmDuration = document.getElementById("confirmClip");
@@ -395,71 +399,71 @@ function init() {
         cameraDistance++;
       };
 
-      // confirmDuration.onclick = function () {
-      //   clearInterval(timer);
-      //   if (playBtn.style.display === "block") {
-      //     pauseContinue();
-      //     isTimerStop = true;
-      //     pauseBtn.style.display = "block";
-      //     playBtn.style.display = "none";
-      //   }
-      //   let xArray1 = sealBehaviourData.filter((item) => {
-      //     if (
-      //       sliderOne.value <= Number(item.Seconds) &&
-      //       sliderTwo.value >= Number(item.Seconds)
-      //     ) {
-      //       return item;
-      //     }
-      //   });
+      confirmDuration.onclick = function () {
+        clearInterval(timer);
+        if (playBtn.style.display === "block") {
+          pauseContinue();
+          isTimerStop = true;
+          pauseBtn.style.display = "block";
+          playBtn.style.display = "none";
+        }
+        let xArray1 = sealBehaviourData.filter((item) => {
+          if (
+            sliderOne.value <= Number(item.Seconds) &&
+            sliderTwo.value >= Number(item.Seconds)
+          ) {
+            return item;
+          }
+        });
 
-      //   // initialSeconds = xArray1[0].Seconds;
-      //   let startIndex = sealBehaviourData
-      //     .map((item) => {
-      //       if (sliderOne.value === item.Seconds.toString()) {
-      //         return Number(item.Seconds);
-      //       }
-      //     })
-      //     .indexOf(Number(sliderOne.value));
-      //   let endIndex = sealBehaviourData
-      //     .map((item) => {
-      //       if (sliderTwo.value === item.Seconds.toString()) {
-      //         return Number(item.Seconds);
-      //       }
-      //     })
-      //     .indexOf(Number(sliderTwo.value));
-      //   length = (xArray1.length - 1) / frequency;
-      //   rangeSlider.min = startIndex;
-      //   rangeSlider.value = startIndex;
-      //   rangeSlider.defaultValue = startIndex;
-      //   rangeSlider.max = endIndex;
-      //   modal.style.display = "none";
+        // initialSeconds = xArray1[0].Seconds;
+        let startIndex = sealBehaviourData
+          .map((item) => {
+            if (sliderOne.value === item.Seconds.toString()) {
+              return Number(item.Seconds);
+            }
+          })
+          .indexOf(Number(sliderOne.value));
+        let endIndex = sealBehaviourData
+          .map((item) => {
+            if (sliderTwo.value === item.Seconds.toString()) {
+              return Number(item.Seconds);
+            }
+          })
+          .indexOf(Number(sliderTwo.value));
+        length = (xArray1.length - 1) / frequency;
+        rangeSlider.min = startIndex;
+        rangeSlider.value = startIndex;
+        rangeSlider.defaultValue = startIndex;
+        rangeSlider.max = endIndex;
+        modal.style.display = "none";
 
-      //   // after loaded and data this function will call
-      //   intervalFunction();
+        // after loaded and data this function will call
+        intervalFunction();
 
-      //   minStroke = xArray1.reduce(function (prev, curr) {
-      //     return Number(prev.Stroke_Rate) < Number(curr.Stroke_Rate)
-      //       ? prev
-      //       : curr;
-      //   });
+        minStroke = xArray1.reduce(function (prev, curr) {
+          return Number(prev.Stroke_Rate) < Number(curr.Stroke_Rate)
+            ? prev
+            : curr;
+        });
 
-      //   maxStroke = xArray1.reduce(function (prev, curr) {
-      //     return Number(prev.Stroke_Rate) > Number(curr.Stroke_Rate)
-      //       ? prev
-      //       : curr;
-      //   });
+        maxStroke = xArray1.reduce(function (prev, curr) {
+          return Number(prev.Stroke_Rate) > Number(curr.Stroke_Rate)
+            ? prev
+            : curr;
+        });
 
-      //   const updatePlotData = drawGraph(
-      //     xArray1,
-      //     xArray1,
-      //     minStroke,
-      //     maxStroke,
-      //     xArray1.length - 1,
-      //     xArray1
-      //   );
+        const updatePlotData = drawGraph(
+          xArray1,
+          xArray1,
+          minStroke,
+          maxStroke,
+          xArray1.length - 1,
+          xArray1
+        );
 
-      //   Plotly.update("chartDiv", updatePlotData.data, updatePlotData.layout);
-      // };
+        Plotly.update("chartDiv", updatePlotData.data, updatePlotData.layout);
+      };
 
       playSpeedBtn.onclick = function () {
         if (playSpeed === 1000) {
@@ -540,12 +544,12 @@ function init() {
         stateEle.innerText = currentState?.Simple_Sleep_Code;
         stateEle.style.backgroundColor =
           currentState?.Simple_Sleep_Code === "Active Waking"
-            ? "#296E85"
+            ? "#0081AA"
             : currentState?.Simple_Sleep_Code === "SWS"
-            ? "#DAF7A6"
+            ? "#00B448"
             : currentState?.Simple_Sleep_Code === "REM" ||
               currentState?.Simple_Sleep_Code === "Quiet Waking"
-            ? "#FFFF66"
+            ? "#E2BE00"
             : "";
         heartInnerText.innerText = `${Number(currentState.Heart_Rate)?.toFixed(
           2
@@ -553,8 +557,8 @@ function init() {
         strokeInnerText.innerText = `${Number(
           currentState.Stroke_Rate
         )?.toFixed(2)}spm`;
-        minuteEle.innerText = `MINUTES INTO DIVE ${currentState.Seconds.toString().toHHMMSS()}`;
-        depthEle.innerText = `DEPTH ${Number(currentState["Depth"])?.toFixed(
+        minuteInnerText.innerText = `${currentState.Seconds.toString().toHHMMSS()}`;
+        depthInnerText.innerText = `${Number(currentState["Depth"])?.toFixed(
           2
         )}m`;
         if (!isStart) {

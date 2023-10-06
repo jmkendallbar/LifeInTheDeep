@@ -11,6 +11,8 @@ import {
   playSpeedBtn,
   zoomInBtn,
   zoomOutBtn,
+  depthInnerText,
+  minuteInnerText,
 } from "./main";
 
 export default function elementStyle() {
@@ -18,16 +20,16 @@ export default function elementStyle() {
   strokeEle.textContent = "STROKE RATE";
   strokeEle.style.position = "absolute";
   strokeEle.style.bottom = "200px";
-  strokeEle.style.right = "60px";
+  strokeEle.style.right = "94px";
   strokeEle.style.color = "#fff";
   strokeEle.style.fontFamily = "system-ui";
-  strokeEle.style.fontSize = "28px";
+  strokeEle.style.fontSize = "24px";
 
   // stroke data
   strokeInnerText.textContent = "0 spm";
   strokeInnerText.style.position = "absolute";
   strokeInnerText.style.bottom = "166px";
-  strokeInnerText.style.right = "60px";
+  strokeInnerText.style.right = "94px";
   strokeInnerText.style.color = "#fff";
   strokeInnerText.style.fontSize = "32px";
   strokeInnerText.style.fontFamily = "system-ui";
@@ -36,8 +38,8 @@ export default function elementStyle() {
   heartEle.textContent = "HEART RATE";
   heartEle.style.position = "absolute";
   heartEle.style.bottom = "126px";
-  heartEle.style.right = "60px";
-  heartEle.style.fontSize = "28px";
+  heartEle.style.right = "94px";
+  heartEle.style.fontSize = "24px";
   heartEle.style.color = "#fff";
   heartEle.style.fontFamily = "system-ui";
 
@@ -46,7 +48,7 @@ export default function elementStyle() {
   heartInnerText.style.position = "absolute";
   heartInnerText.style.color = "#fff";
   heartInnerText.style.bottom = "90px";
-  heartInnerText.style.right = "60px";
+  heartInnerText.style.right = "94px";
   heartInnerText.style.fontSize = "32px";
   heartInnerText.style.fontFamily = "system-ui";
 
@@ -75,31 +77,51 @@ export default function elementStyle() {
   minuteEle.textContent = "MINUTES INTO DIVE";
   minuteEle.style.position = "absolute";
   minuteEle.style.width = "160px";
-  minuteEle.style.bottom = "310px";
+  minuteEle.style.bottom = "150px";
   minuteEle.style.left = "60px";
   minuteEle.style.color = "#fff";
-  minuteEle.style.fontSize = "28px";
+  minuteEle.style.fontSize = "24px";
   minuteEle.style.fontFamily = "system-ui";
 
+  // MINUTE DATA
+  minuteInnerText.textContent = "MINUTES INTO DIVE";
+  minuteInnerText.style.position = "absolute";
+  minuteInnerText.style.width = "160px";
+  minuteInnerText.style.bottom = "110px";
+  minuteInnerText.style.left = "60px";
+  minuteInnerText.style.color = "#fff";
+  minuteInnerText.style.fontSize = "32px";
+  minuteInnerText.style.fontFamily = "system-ui";
+
   // DEPTH ELEMENT
-  depthEle.textContent = "DEPTH 196m";
+  depthEle.textContent = "DEPTH";
   depthEle.style.width = "100px";
   depthEle.style.position = "absolute";
-  depthEle.style.bottom = "400px";
-  depthEle.style.right = "60px";
+  depthEle.style.top = "228px";
+  depthEle.style.right = "100px";
   depthEle.style.color = "#fff";
-  depthEle.style.fontSize = "32px";
+  depthEle.style.fontSize = "24px";
   depthEle.style.fontFamily = "system-ui";
+
+  // depth data
+  depthInnerText.textContent = "196 m";
+  depthInnerText.style.width = "100px";
+  depthInnerText.style.position = "absolute";
+  depthInnerText.style.top = "252px";
+  depthInnerText.style.right = "100px";
+  depthInnerText.style.color = "#fff";
+  depthInnerText.style.fontSize = "32px";
+  depthInnerText.style.fontFamily = "system-ui";
 
   // State ELEMENT
   stateEle.textContent = "SLEEP STATE ACTIVE WAKING";
-  stateEle.style.width = "170px";
+  stateEle.style.width = "160px";
   stateEle.style.position = "absolute";
   stateEle.style.textAlign = "center";
-  stateEle.style.top = "138px";
+  stateEle.style.top = "260px";
   stateEle.style.left = "60px";
-  stateEle.style.color = "#000";
-  stateEle.style.fontSize = "20px";
+  stateEle.style.color = "#fff";
+  stateEle.style.fontSize = "24px";
   stateEle.style.fontFamily = "system-ui";
   stateEle.style.backgroundColor = "#4f7942";
   stateEle.style.borderRadius = "46px";
@@ -107,7 +129,7 @@ export default function elementStyle() {
   stateEle.style.paddingBottom = "16px";
   stateEle.style.paddingLeft = "30px";
   stateEle.style.paddingRight = "30px";
-  stateEle.style.border = "4px solid #000";
+  stateEle.style.border = "4px solid #fff";
 
   // play speed button
   playSpeedBtn.type = "button";
