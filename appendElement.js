@@ -12,6 +12,8 @@ import {
   playBtn,
   resetBtn,
   cropBtn,
+  depthInnerText,
+  minuteInnerText,
   // zoomInBtn,
   // zoomOutBtn,
 } from "./main";
@@ -30,6 +32,6 @@ export default function appendElement() {
   document.body.appendChild(depthEle);
   document.body.appendChild(playSpeedBtn);
   document.body.appendChild(cropBtn);
-  // document.body.appendChild(zoomInBtn);
-  // document.body.appendChild(zoomOutBtn);
+  document.body.appendChild(depthInnerText);
+  document.body.appendChild(minuteInnerText);
 }
