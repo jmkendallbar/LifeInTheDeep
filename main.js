@@ -28,6 +28,23 @@ const importPromises = [];
 let seal = [];
 // let model;
 
+const loadingContainer = document.getElementById("loading-container");
+const loadingText = document.getElementById("loading-text");
+const loadingManager = new THREE.LoadingManager();
+
+// This function will be called when a resource is loaded
+loadingManager.onProgress = (item, loaded, total) => {
+  const progress = loaded / total;
+  loadingText.innerHTML = `Loading... ${Math.floor(progress * 100)}%`;
+};
+
+// This function will be called when all resources are loaded
+loadingManager.onLoad = () => {
+  loadingContainer.style.display = "none"; // Hide the loading animation
+  // Initialize and render your Three.js scene here
+  // init();
+};
+
 // Create an array of Promises for importing each file
 var xyz;
 for (xyz = 85; xyz <= 87; xyz++) {
@@ -122,108 +139,113 @@ export let rangeSlider,
 // start init function
 function init() {
   // Display chart using Plotly --start
-  initialSeconds = Number(seal[0].Seconds);
-  frequency = Number(seal[1].Seconds) - Number(seal[0].Seconds);
-  seal.forEach((item) => {
-    sealBehaviourData[Number(item.Seconds) - initialSeconds] = item;
-  });
-
-  length = sealBehaviourData.length / frequency;
-  lastIndex = (length - 1) * frequency;
-
-  const xArray = sealBehaviourData.map((item) => {
-    return Number(item.Seconds) / 60;
-  });
-  const yArray = sealBehaviourData.map((item) => {
-    return Number(item.Stroke_Rate);
-  });
-
-  minStroke = sealBehaviourData.reduce(function (prev, curr) {
-    return Number(prev.Stroke_Rate) < Number(curr.Stroke_Rate) ? prev : curr;
-  });
-
-  maxStroke = sealBehaviourData.reduce(function (prev, curr) {
-    return Number(prev.Stroke_Rate) > Number(curr.Stroke_Rate) ? prev : curr;
-  });
-
-  const plotData = drawGraph(
-    xArray,
-    yArray,
-    minStroke,
-    maxStroke,
-    lastIndex,
-    sealBehaviourData
-  );
-
-  Plotly.newPlot("chartDiv", plotData.data, plotData.layout);
-  // plotly chart --end
-
-  // this is the container div where we are showing the overall UI video.
-  const container = document.getElementById("container");
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.shadowMap.enabled = true;
-  renderer.useLegacyLights = false;
-  container.appendChild(renderer.domElement);
-
-  camera = new THREE.PerspectiveCamera(
-    45,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    1000
-  );
-
-  camera2 = new THREE.PerspectiveCamera(
-    20,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    1000
-  );
-
-  // camera.up.set(0, 1, 0);
-
-  controls = new OrbitControls(camera, renderer.domElement);
-  // controls.minDistance = 10;
-  // controls.maxDistance = 1000;
-
-  clock = new THREE.Clock();
-
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x33567d);
-  scene.fog = new THREE.Fog(0x33567d, 100, 100);
-
-  const hemiLight = new THREE.HemisphereLight(0x33567d, 0x33567d, 3);
-  hemiLight.position.set(0, 100, 0);
-  scene.add(hemiLight);
-
-  const dirLight = new THREE.DirectionalLight(0x33567d, 3);
-  dirLight.position.set(-3, 10, -10);
-  dirLight.castShadow = true;
-  dirLight.shadow.camera.top = 2;
-  dirLight.shadow.camera.bottom = -2;
-  dirLight.shadow.camera.left = -2;
-  dirLight.shadow.camera.right = 2;
-  dirLight.shadow.camera.near = 0.1;
-  dirLight.shadow.camera.far = 40;
-  scene.add(dirLight);
-
-  // ground
-
-  const mesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(100, 100),
-    new THREE.MeshPhongMaterial({ color: 0xcbcbcb, depthWrite: false })
-  );
-  mesh.rotation.x = -Math.PI / 2;
-  mesh.receiveShadow = true;
-  scene.add(mesh);
-
   // creating instance for loader which is use to load our model
-  const loader = new GLTFLoader();
+  const loader = new GLTFLoader(loadingManager);
   loader.load(
     "https://visualising-life-in-the-deep.s3.amazonaws.com/Seal_Animation.glb",
     function (gltf) {
       model = gltf.scene;
+
+      initialSeconds = Number(seal[0].Seconds);
+      frequency = Number(seal[1].Seconds) - Number(seal[0].Seconds);
+      seal.forEach((item) => {
+        sealBehaviourData[Number(item.Seconds) - initialSeconds] = item;
+      });
+
+      length = sealBehaviourData.length / frequency;
+      lastIndex = (length - 1) * frequency;
+
+      const xArray = sealBehaviourData.map((item) => {
+        return Number(item.Seconds) / 60;
+      });
+      const yArray = sealBehaviourData.map((item) => {
+        return Number(item.Stroke_Rate);
+      });
+
+      minStroke = sealBehaviourData.reduce(function (prev, curr) {
+        return Number(prev.Stroke_Rate) < Number(curr.Stroke_Rate)
+          ? prev
+          : curr;
+      });
+
+      maxStroke = sealBehaviourData.reduce(function (prev, curr) {
+        return Number(prev.Stroke_Rate) > Number(curr.Stroke_Rate)
+          ? prev
+          : curr;
+      });
+
+      const plotData = drawGraph(
+        xArray,
+        yArray,
+        minStroke,
+        maxStroke,
+        lastIndex,
+        sealBehaviourData
+      );
+
+      Plotly.newPlot("chartDiv", plotData.data, plotData.layout);
+      // plotly chart --end
+
+      // this is the container div where we are showing the overall UI video.
+      const container = document.getElementById("container");
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.useLegacyLights = false;
+      container.appendChild(renderer.domElement);
+
+      camera = new THREE.PerspectiveCamera(
+        45,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+
+      camera2 = new THREE.PerspectiveCamera(
+        20,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+
+      // camera.up.set(0, 1, 0);
+
+      controls = new OrbitControls(camera, renderer.domElement);
+      // controls.minDistance = 10;
+      // controls.maxDistance = 1000;
+
+      clock = new THREE.Clock();
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x33567d);
+      scene.fog = new THREE.Fog(0x33567d, 100, 100);
+
+      const hemiLight = new THREE.HemisphereLight(0x33567d, 0x33567d, 3);
+      hemiLight.position.set(0, 100, 0);
+      scene.add(hemiLight);
+
+      const dirLight = new THREE.DirectionalLight(0x33567d, 3);
+      dirLight.position.set(-3, 10, -10);
+      dirLight.castShadow = true;
+      dirLight.shadow.camera.top = 2;
+      dirLight.shadow.camera.bottom = -2;
+      dirLight.shadow.camera.left = -2;
+      dirLight.shadow.camera.right = 2;
+      dirLight.shadow.camera.near = 0.1;
+      dirLight.shadow.camera.far = 40;
+      scene.add(dirLight);
+
+      // ground
+
+      const mesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(100, 100),
+        new THREE.MeshPhongMaterial({ color: 0xcbcbcb, depthWrite: false })
+      );
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.receiveShadow = true;
+      scene.add(mesh);
+
       scene.add(model);
 
       model.traverse(function (object) {
