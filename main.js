@@ -510,7 +510,9 @@ function init() {
           xArray1.length - 1,
           xArray1
         );
-
+        prevValue = rangeSlider.value - 1;
+        perSecWidth = 85 / xArray1.length;
+        chartDiv.style.width = "85%";
         Plotly.update("chartDiv", updatePlotData.data, updatePlotData.layout);
       };
 
@@ -590,13 +592,11 @@ function init() {
             Number(chartDiv.style.width.split("%")[0]) -
             Number(perSecWidth) *
               Number(Number(rangeSlider.value) - Number(prevValue));
-          console.log("minus", currentWidth);
         } else {
           currentWidth =
             Number(chartDiv.style.width.split("%")[0]) +
             Number(perSecWidth) *
               (Number(prevValue) - Number(rangeSlider.value));
-          console.log("plus", currentWidth);
         }
         chartDiv.style.width = currentWidth + "%";
         const currentState =
