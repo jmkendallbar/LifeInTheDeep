@@ -47,7 +47,7 @@ loadingManager.onLoad = () => {
 
 // Create an array of Promises for importing each file
 var xyz;
-for (xyz = 85; xyz <= 87; xyz++) {
+for (xyz = 85; xyz <= 85; xyz++) {
   importPromises.push(import(`./seal-info/batch_${xyz}.json`));
 }
 
@@ -131,6 +131,7 @@ export let rangeSlider,
   resetBtn,
   zoomInBtn,
   zoomOutBtn,
+  chartDiv,
   pointsPath;
 
 // This is the intializing function when the website will load first
@@ -294,6 +295,15 @@ function init() {
       confirmDuration = document.getElementById("confirmClip");
       zoomInBtn = document.createElement("button");
       zoomOutBtn = document.createElement("button");
+      chartDiv = document.getElementById("chartHoverDiv");
+
+      // chartDiv.onmouseenter = function () {
+      //   chartDiv.style.zIndex = -1;
+      // };
+
+      // chartDiv.onmouseout = function () {
+      //   chartDiv.style.zIndex = 1;
+      // };
 
       // timeline crop video's code start from here
       cropBtn.id = "cropBtnId";
@@ -557,8 +567,11 @@ function init() {
         return hours + ":" + minutes + ":" + seconds;
       };
 
-      // This is the main function which takes the current status from the data and based on that showing the model behaviour in the UI screen like swim, glide and idle
+      var perSecWidth = 85 / sealBehaviourData.length;
+      let currentWidth;
       function currentStatus() {
+        currentWidth = chartDiv.style.width.split("%")[0] - perSecWidth;
+        chartDiv.style.width = currentWidth + "%";
         const currentState =
           sealBehaviourData[Number(rangeSlider.value) * Number(frequency)];
         const prevState =
