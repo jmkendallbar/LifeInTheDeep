@@ -47,7 +47,7 @@ loadingManager.onLoad = () => {
 
 // Create an array of Promises for importing each file
 var xyz;
-for (xyz = 85; xyz <= 87; xyz++) {
+for (xyz = 85; xyz <= 85; xyz++) {
   importPromises.push(import(`./seal-info/batch_${xyz}.json`));
 }
 

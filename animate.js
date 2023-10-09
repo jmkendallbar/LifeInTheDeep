@@ -90,10 +90,10 @@ export default function animate() {
   );
 
   renderer.setViewport(
-    -310,
-    inset.insetHeight * 2,
-    inset.insetWidth * 4,
-    inset.insetHeight * 4
+    -530,
+    inset.insetHeight * 2 - 140,
+    inset.insetWidth * 6,
+    inset.insetHeight * 6
   );
 
   camera2.position.copy(camera.position);

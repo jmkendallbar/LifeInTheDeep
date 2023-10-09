@@ -115,7 +115,7 @@ export default function elementStyle() {
 
   // State ELEMENT
   stateEle.textContent = "SLEEP STATE ACTIVE WAKING";
-  stateEle.style.width = "160px";
+  stateEle.style.width = "200px";
   stateEle.style.position = "absolute";
   stateEle.style.textAlign = "center";
   stateEle.style.top = "260px";
