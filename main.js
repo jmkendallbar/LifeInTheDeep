@@ -134,6 +134,12 @@ export let rangeSlider,
   chartDiv,
   currentWidth,
   perSecWidth,
+  pitchEle,
+  pitchInnerText,
+  rollEle,
+  rollInnerText,
+  headEle,
+  headInnerText,
   pointsPath;
 
 // This is the intializing function when the website will load first
@@ -294,6 +300,12 @@ function init() {
       depthEle = document.createElement("span");
       depthInnerText = document.createElement("span");
       stateEle = document.createElement("span");
+      headEle = document.createElement("span");
+      rollEle = document.createElement("span");
+      pitchEle = document.createElement("span");
+      headInnerText = document.createElement("span");
+      rollInnerText = document.createElement("span");
+      pitchInnerText = document.createElement("span");
       playSpeedBtn = document.createElement("button");
       confirmDuration = document.getElementById("confirmClip");
       zoomInBtn = document.createElement("button");
@@ -608,6 +620,9 @@ function init() {
           currentState.Stroke_Rate
         )?.toFixed(2)}spm`;
         minuteInnerText.innerText = `${currentState.Seconds.toString().toHHMMSS()}`;
+        pitchInnerText.innerText = `${Number(currentState.pitch)?.toFixed(4)}`;
+        rollInnerText.innerText = `${Number(currentState.roll)?.toFixed(4)}`;
+        headInnerText.innerText = `${Number(currentState.heading)?.toFixed(4)}`;
         depthInnerText.innerText = `${Number(currentState["Depth"])?.toFixed(
           2
         )}m`;
