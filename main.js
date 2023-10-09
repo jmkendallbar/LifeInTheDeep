@@ -131,6 +131,9 @@ export let rangeSlider,
   resetBtn,
   zoomInBtn,
   zoomOutBtn,
+  chartDiv,
+  currentWidth,
+  perSecWidth,
   pointsPath;
 
 // This is the intializing function when the website will load first
@@ -154,6 +157,7 @@ function init() {
 
       length = sealBehaviourData.length / frequency;
       lastIndex = (length - 1) * frequency;
+      perSecWidth = 85 / sealBehaviourData.length;
 
       const xArray = sealBehaviourData.map((item) => {
         return Number(item.Seconds) / 60;
@@ -294,6 +298,17 @@ function init() {
       confirmDuration = document.getElementById("confirmClip");
       zoomInBtn = document.createElement("button");
       zoomOutBtn = document.createElement("button");
+      chartDiv = document.getElementById("chartHoverDiv");
+
+      // chartDiv.style.width = window.innerWidth * 0.0554 + "%";
+      // console.log("chartDiv", window.innerWidth);
+      // chartDiv.onmouseenter = function () {
+      //   chartDiv.style.zIndex = -1;
+      // };
+
+      // chartDiv.onmouseout = function () {
+      //   chartDiv.style.zIndex = 1;
+      // };
 
       // timeline crop video's code start from here
       cropBtn.id = "cropBtnId";
@@ -557,8 +572,21 @@ function init() {
         return hours + ":" + minutes + ":" + seconds;
       };
 
-      // This is the main function which takes the current status from the data and based on that showing the model behaviour in the UI screen like swim, glide and idle
       function currentStatus() {
+        if (Number(prevValue) < Number(rangeSlider.value)) {
+          currentWidth =
+            Number(chartDiv.style.width.split("%")[0]) -
+            Number(perSecWidth) *
+              Number(Number(rangeSlider.value) - Number(prevValue));
+          console.log("minus", currentWidth);
+        } else {
+          currentWidth =
+            Number(chartDiv.style.width.split("%")[0]) +
+            Number(perSecWidth) *
+              (Number(prevValue) - Number(rangeSlider.value));
+          console.log("plus", currentWidth);
+        }
+        chartDiv.style.width = currentWidth + "%";
         const currentState =
           sealBehaviourData[Number(rangeSlider.value) * Number(frequency)];
         const prevState =
