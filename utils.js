@@ -191,7 +191,7 @@ export function onWindowResize() {
 
   renderer.setSize(window.innerWidth, window.innerHeight);
 
-  inset.insetWidth = window.innerHeight / 3; // square
+  inset.insetWidth = window.innerWidth / 5; // square
   inset.insetHeight = window.innerHeight / 3;
 
   camera2.aspect = inset.insetWidth / inset.insetHeight;
