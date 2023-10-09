@@ -47,7 +47,7 @@ loadingManager.onLoad = () => {
 
 // Create an array of Promises for importing each file
 var xyz;
-for (xyz = 85; xyz <= 85; xyz++) {
+for (xyz = 85; xyz <= 87; xyz++) {
   importPromises.push(import(`./seal-info/batch_${xyz}.json`));
 }
 
@@ -132,6 +132,8 @@ export let rangeSlider,
   zoomInBtn,
   zoomOutBtn,
   chartDiv,
+  currentWidth,
+  perSecWidth,
   pointsPath;
 
 // This is the intializing function when the website will load first
@@ -155,6 +157,7 @@ function init() {
 
       length = sealBehaviourData.length / frequency;
       lastIndex = (length - 1) * frequency;
+      perSecWidth = 85 / sealBehaviourData.length;
 
       const xArray = sealBehaviourData.map((item) => {
         return Number(item.Seconds) / 60;
@@ -297,6 +300,8 @@ function init() {
       zoomOutBtn = document.createElement("button");
       chartDiv = document.getElementById("chartHoverDiv");
 
+      // chartDiv.style.width = window.innerWidth * 0.0554 + "%";
+      // console.log("chartDiv", window.innerWidth);
       // chartDiv.onmouseenter = function () {
       //   chartDiv.style.zIndex = -1;
       // };
@@ -567,10 +572,20 @@ function init() {
         return hours + ":" + minutes + ":" + seconds;
       };
 
-      var perSecWidth = 85 / sealBehaviourData.length;
-      let currentWidth;
       function currentStatus() {
-        currentWidth = chartDiv.style.width.split("%")[0] - perSecWidth;
+        if (Number(prevValue) < Number(rangeSlider.value)) {
+          currentWidth =
+            Number(chartDiv.style.width.split("%")[0]) -
+            Number(perSecWidth) *
+              Number(Number(rangeSlider.value) - Number(prevValue));
+          console.log("minus", currentWidth);
+        } else {
+          currentWidth =
+            Number(chartDiv.style.width.split("%")[0]) +
+            Number(perSecWidth) *
+              (Number(prevValue) - Number(rangeSlider.value));
+          console.log("plus", currentWidth);
+        }
         chartDiv.style.width = currentWidth + "%";
         const currentState =
           sealBehaviourData[Number(rangeSlider.value) * Number(frequency)];
