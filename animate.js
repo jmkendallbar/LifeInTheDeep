@@ -90,11 +90,24 @@ export default function animate() {
   );
 
   renderer.setViewport(
-    -530,
-    inset.insetHeight * 2 - 140,
-    inset.insetWidth * 6,
-    inset.insetHeight * 6
+    -860,
+    inset.insetWidth - 30,
+    inset.insetWidth * 7,
+    inset.insetHeight * 7
   );
+  // renderer.setScissor(
+  //   60,
+  //   inset.insetHeight * 2,
+  //   inset.insetWidth,
+  //   inset.insetHeight
+  // );
+
+  // renderer.setViewport(
+  //   -530,
+  //   inset.insetHeight * 2 - 140,
+  //   inset.insetWidth * 6,
+  //   inset.insetHeight * 6
+  // );
 
   camera2.position.copy(camera.position);
   camera2.quaternion.copy(camera.quaternion);
