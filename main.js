@@ -517,6 +517,9 @@ function init() {
       };
 
       playSpeedBtn.onclick = function () {
+        if (!isTimerStop) {
+          return;
+        }
         if (playSpeed === 1000) {
           playSpeed = 500;
           playSpeedBtn.innerText = "2x";
