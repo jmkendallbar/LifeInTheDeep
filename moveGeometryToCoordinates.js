@@ -8,6 +8,8 @@ import {
   scene,
   gridHelper,
   cameraDistance,
+  page,
+  perPage,
 } from "./main.js";
 
 export default function moveGeometryToCoordinates(j) {
@@ -22,15 +24,17 @@ export default function moveGeometryToCoordinates(j) {
   // Calculate the closest point on the path to the target coordinates
   let fraction = 0;
   while (fraction < 1) {
-    closestPointOnRotatedTrack = pointsPath.curves[j].getPointAt(fraction);
-    currentPosition = pointsPath.curves[j].getPointAt(fraction + 1); // You can adjust the fraction value
+    const skip = page * perPage;
+    closestPointOnRotatedTrack =
+      pointsPath.curves[j - skip].getPointAt(fraction);
+    currentPosition = pointsPath.curves[j - skip].getPointAt(fraction + 1); // You can adjust the fraction value
     rotationMatrix = new THREE.Matrix4().makeRotationX(-Math.PI / 2); // Use the same rotation value
     closestPoint = closestPointOnRotatedTrack.applyMatrix4(rotationMatrix);
 
     nextPoint = currentPosition.applyMatrix4(rotationMatrix);
-    model.rotation.x = Number(sealBehaviourData[j].pitch);
-    model.rotation.z = Number(sealBehaviourData[j].roll);
-    model.rotation.y = Number(sealBehaviourData[j].heading);
+    model.rotation.x = Number(sealBehaviourData[j - skip].pitch);
+    model.rotation.z = Number(sealBehaviourData[j - skip].roll);
+    model.rotation.y = Number(sealBehaviourData[j - skip].heading);
     // model.lookAt(nextPoint);
     model.position.copy(closestPoint);
 
