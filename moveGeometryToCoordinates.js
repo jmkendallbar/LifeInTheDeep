@@ -25,16 +25,16 @@ export default function moveGeometryToCoordinates(j) {
   let fraction = 0;
   while (fraction < 1) {
     const skip = page * perPage;
-    closestPointOnRotatedTrack =
-      pointsPath.curves[j - skip].getPointAt(fraction);
-    currentPosition = pointsPath.curves[j - skip].getPointAt(fraction + 1); // You can adjust the fraction value
+    // console.log("skip", pointsPath.curves[j], pointsPath.curves[0]);
+    closestPointOnRotatedTrack = pointsPath.curves[j].getPointAt(fraction);
+    currentPosition = pointsPath.curves[j].getPointAt(fraction + 1); // You can adjust the fraction value
     rotationMatrix = new THREE.Matrix4().makeRotationX(-Math.PI / 2); // Use the same rotation value
     closestPoint = closestPointOnRotatedTrack.applyMatrix4(rotationMatrix);
 
     nextPoint = currentPosition.applyMatrix4(rotationMatrix);
-    model.rotation.x = Number(sealBehaviourData[j - skip].pitch);
-    model.rotation.z = Number(sealBehaviourData[j - skip].roll);
-    model.rotation.y = Number(sealBehaviourData[j - skip].heading);
+    model.rotation.x = Number(sealBehaviourData[j - (skip + page)].pitch);
+    model.rotation.z = Number(sealBehaviourData[j - (skip + page)].roll);
+    model.rotation.y = Number(sealBehaviourData[j - (skip + page)].heading);
     // model.lookAt(nextPoint);
     model.position.copy(closestPoint);
 

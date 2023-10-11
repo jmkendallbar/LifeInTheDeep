@@ -59,7 +59,7 @@ export default function animate() {
   // start ----------
   // requestAnimationFrame(animate);
 
-  stats.update();
+  // stats.update();
 
   // main scene
 
@@ -70,9 +70,9 @@ export default function animate() {
   // renderer will set this eventually
   matLine.resolution.set(window.innerWidth, window.innerHeight); // resolution of the viewport
 
-  gpuPanel.startQuery();
+  // gpuPanel.startQuery();
   renderer.render(scene, camera);
-  gpuPanel.endQuery();
+  // gpuPanel.endQuery();
 
   // inset scene
 

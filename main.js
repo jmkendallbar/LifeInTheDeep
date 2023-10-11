@@ -27,9 +27,11 @@ import { fetchDataFromAPI } from "./js/fetchDataFromAPI";
 
 const importPromises = [];
 let seal = [];
+let nextSeal = [];
+let nextSeal1 = [];
 let range;
 export let page = 0;
-export let perPage = 1999;
+export let perPage = 999;
 // let model;
 
 const loadingContainer = document.getElementById("loading-container");
@@ -66,8 +68,23 @@ loadingManager.onLoad = () => {
 //   importPromises.push(import(`./seal-info/batch_${xyz}.json`));
 // }
 try {
-  const { data, totalRange, batchs } = await fetchDataFromAPI(page);
+  const { data, totalRange, batchs } = await fetchDataFromAPI(85);
   seal = data;
+  range = totalRange;
+} catch (error) {
+  console.log(error);
+}
+try {
+  const { data, totalRange, batchs } = await fetchDataFromAPI(86);
+  nextSeal = data;
+  range = totalRange;
+} catch (error) {
+  console.log(error);
+}
+
+try {
+  const { data, totalRange, batchs } = await fetchDataFromAPI(87);
+  nextSeal1 = data;
   range = totalRange;
 } catch (error) {
   console.log(error);
@@ -150,10 +167,10 @@ export let rangeSlider,
 
 let timer;
 let isTimerStop = true;
-
+let points;
 // This is the intializing function when the website will load first
 init();
-
+// let lod = new THREE.LOD();
 // start init function
 function init() {
   // Display chart using Plotly --start
@@ -594,8 +611,8 @@ function init() {
         }
         return hours + ":" + minutes + ":" + seconds;
       };
-
-      createPointPath();
+      pointsPath = new THREE.CurvePath();
+      createPointPath(sealBehaviourData);
     }
   );
 }
@@ -604,15 +621,26 @@ function intervalFunction() {
   timer = setInterval(() => {
     if (Number(rangeSlider.value) < Number(rangeSlider.max) - 1) {
       rangeSlider.value = rangeSlider.value * 1 + 1;
+      const skip = (page + 1) * perPage - 500;
+      const skip1 = (page + 1) * perPage;
+      const ranger = Number(rangeSlider.value);
+      console.log("1", skip, skip1, ranger);
+      if (skip == ranger) {
+        // dataSetup(page);
+        createPointPath(nextSeal);
+      }
+      if (skip1 == ranger) {
+        page++;
+        page = Math.floor(Number(rangeSlider.value) / perPage);
+        if (page == 1) {
+          sealBehaviourData = nextSeal;
+        } else {
+          createPointPath(nextSeal1);
+          sealBehaviourData = nextSeal1;
+        }
+      }
       currentStatus();
       moveGeometryToCoordinates(Number(rangeSlider.value));
-      const skip = (page + 1) * perPage - 1;
-      const ranger = Number(rangeSlider.value);
-      if (skip === ranger) {
-        page = Math.floor(Number(rangeSlider.value) / perPage);
-        page++;
-        dataSetup(page);
-      }
     } else {
       clearInterval(timer);
       pauseContinue();
@@ -649,19 +677,19 @@ function currentStatus() {
         currentState?.Simple_Sleep_Code === "Quiet Waking"
       ? "#E2BE00"
       : "";
-  heartInnerText.innerText = `${Number(currentState.Heart_Rate)?.toFixed(
+  heartInnerText.innerText = `${Number(currentState?.Heart_Rate)?.toFixed(
     2
   )}bpm`;
-  strokeInnerText.innerText = `${Number(currentState.Stroke_Rate)?.toFixed(
+  strokeInnerText.innerText = `${Number(currentState?.Stroke_Rate)?.toFixed(
     2
   )}spm`;
-  minuteInnerText.innerText = `${currentState.Seconds.toString().toHHMMSS()}`;
-  pitchInnerText.innerText = `${Number(currentState.pitch)?.toFixed(4)}`;
-  rollInnerText.innerText = `${Number(currentState.roll)?.toFixed(4)}`;
-  headInnerText.innerText = `${Number(currentState.heading)?.toFixed(4)}`;
-  depthInnerText.innerText = `${Number(currentState["Depth"])?.toFixed(2)}m`;
+  minuteInnerText.innerText = `${currentState?.Seconds.toString().toHHMMSS()}`;
+  pitchInnerText.innerText = `${Number(currentState?.pitch)?.toFixed(4)}`;
+  rollInnerText.innerText = `${Number(currentState?.roll)?.toFixed(4)}`;
+  headInnerText.innerText = `${Number(currentState?.heading)?.toFixed(4)}`;
+  // depthInnerText.innerText = `${Number(currentState["Depth"])?.toFixed(2)}m`;
   if (!isStart) {
-    if (currentState.Simple_Sleep_Code === "REM") {
+    if (currentState?.Simple_Sleep_Code === "REM") {
       if (
         prevState.Simple_Sleep_Code === "SWS" ||
         prevState.Simple_Sleep_Code === "Quiet Waking"
@@ -672,8 +700,8 @@ function currentStatus() {
       }
     }
     if (
-      currentState.Simple_Sleep_Code === "SWS" ||
-      currentState.Simple_Sleep_Code === "Quiet Waking"
+      currentState?.Simple_Sleep_Code === "SWS" ||
+      currentState?.Simple_Sleep_Code === "Quiet Waking"
     ) {
       if (prevState.Simple_Sleep_Code === "REM") {
         prepareCrossFade(idleAction, glideAction, 1.0);
@@ -681,7 +709,7 @@ function currentStatus() {
         prepareCrossFade(swimAction, glideAction, 1.0);
       }
     }
-    if (currentState.Simple_Sleep_Code === "Active Waking") {
+    if (currentState?.Simple_Sleep_Code === "Active Waking") {
       if (prevState.Simple_Sleep_Code === "REM") {
         prepareCrossFade(idleAction, swimAction, 1.0);
       } else if (
@@ -692,9 +720,9 @@ function currentStatus() {
       }
     }
   } else if (isStart) {
-    if (currentState.Simple_Sleep_Code === "Active Waking") {
+    if (currentState?.Simple_Sleep_Code === "Active Waking") {
       prepareCrossFade(glideAction, swimAction, 1.0);
-    } else if (currentState.Simple_Sleep_Code === "REM") {
+    } else if (currentState?.Simple_Sleep_Code === "REM") {
       prepareCrossFade(glideAction, idleAction, 1.0);
     }
     isStart = false;
@@ -714,46 +742,33 @@ function arrow(axes) {
   line.add(arrowHelper);
 }
 
-export function createPointPath() {
-  pointsPath = new THREE.CurvePath();
-
-  sealBehaviourData.forEach((item, index) => {
-    if (
-      index <
-      sealBehaviourData.length - 1
-      // sealBehaviourData[index] !== undefined &&
-      // sealBehaviourData[index + 1] !== undefined
-    ) {
+export function createPointPath(arr) {
+  // pointsPath = new THREE.CurvePath();
+  // let curve;
+  let arr1 = [];
+  arr.forEach((item, index) => {
+    if (index < arr.length - 1) {
       const startPoint = new THREE.Vector3(
-        Number(sealBehaviourData[index].x),
-        Number(sealBehaviourData[index].y),
-        Number(sealBehaviourData[index].z)
+        Number(arr[index].x),
+        Number(arr[index].y),
+        Number(arr[index].z)
       );
 
       const endPoint = new THREE.Vector3(
-        Number(sealBehaviourData[index + 1].x),
-        Number(sealBehaviourData[index + 1].y),
-        Number(sealBehaviourData[index + 1].z)
+        Number(arr[index + 1].x),
+        Number(arr[index + 1].y),
+        Number(arr[index + 1].z)
       );
 
-      const curve = new THREE.LineCurve3(startPoint, endPoint);
-
+      // curve = new THREE.LineCurve3(startPoint, endPoint);
+      arr1.push(new THREE.LineCurve3(startPoint, endPoint));
       // Add the curve to pointsPath
-      pointsPath.add(curve);
-
-      // Check if there are enough curves in pointsPath
-      // if (pointsPath.curves.length >= 2) {
-      //   // Set the data index for the start and end points of the last curve
-      //   pointsPath.curves[pointsPath.curves.length - 2].dataIndex = index;
-      //   pointsPath.curves[pointsPath.curves.length - 1].dataIndex = index + 1;
-      // }
+      pointsPath.add(new THREE.LineCurve3(startPoint, endPoint));
     }
   });
 
-  const points = pointsPath.curves.reduce(
-    (p, d) => [...p, ...d.getPoints(20)],
-    []
-  );
+  // console.log("points", arr1);
+  points = arr1.reduce((p, d) => [...p, ...d.getPoints(20)], []);
 
   const positions = [];
   const colors = [];
@@ -769,15 +784,10 @@ export function createPointPath() {
     const t = i / (l - 1);
     spline.getPoint(t, point);
     positions.push(point.x, point.y, point.z);
-    if (
-      sealBehaviourData[Math.ceil(i / 21)]?.Simple_Sleep_Code ===
-      "Active Waking"
-    ) {
+    if (arr[Math.ceil(i / 21)]?.Simple_Sleep_Code === "Active Waking") {
       color.setHex(stateColors[0]);
       colors.push(color.r, color.g, color.b);
-    } else if (
-      sealBehaviourData[Math.ceil(i / 21)]?.Simple_Sleep_Code === "SWS"
-    ) {
+    } else if (arr[Math.ceil(i / 21)]?.Simple_Sleep_Code === "SWS") {
       color.setHex(stateColors[3]);
       colors.push(color.r, color.g, color.b);
     } else {
@@ -792,7 +802,7 @@ export function createPointPath() {
 
   matLine = new LineMaterial({
     color: 0xffffff,
-    linewidth: 5, // in world units with size attenuation, pixels otherwise
+    linewidth: 1, // in world units with size attenuation, pixels otherwise
     vertexColors: true,
     //resolution:  // to be set by renderer, eventually
     dashed: false,
@@ -802,7 +812,7 @@ export function createPointPath() {
   line = new Line2(geometry, matLine);
   line.computeLineDistances();
   line.scale.set(1, 1, 1);
-  scene.add(line);
+  // scene.add(line);
 
   arrow("x");
   arrow("y");
@@ -833,12 +843,12 @@ export function createPointPath() {
   window.addEventListener("resize", onWindowResize);
   onWindowResize();
 
-  stats = new Stats();
+  // stats = new Stats();
   // document.body.appendChild(stats.dom);
 
-  gpuPanel = new GPUStatsPanel(renderer.getContext());
-  stats.addPanel(gpuPanel);
-  stats.showPanel(0);
+  // gpuPanel = new GPUStatsPanel(renderer.getContext());
+  // stats.addPanel(gpuPanel);
+  // stats.showPanel(0);
 
   animate();
 }
@@ -925,7 +935,7 @@ export function createPlane() {
 export async function dataSetup(page) {
   try {
     clearInterval(timer);
-    showLoadingOverlay();
+    // showLoadingOverlay();
     const { data, batchs } = await fetchDataFromAPI(page);
     if (data && batchs) {
       prevValue = 0;
@@ -940,7 +950,7 @@ export async function dataSetup(page) {
       sealBehaviourData = arr;
       console.log(sealBehaviourData);
       createPointPath();
-      hideLoadingOverlay();
+      // hideLoadingOverlay();
       intervalFunction();
     }
   } catch (error) {
