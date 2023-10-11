@@ -28,7 +28,7 @@ export default function drawGraph(
     },
     yaxis: {
       range: [Number(minStroke.Stroke_Rate), Number(maxStroke.Stroke_Rate)],
-      title: "Stroke rate (spm)",
+      // title: "Stroke rate (spm)",
     },
   };
 

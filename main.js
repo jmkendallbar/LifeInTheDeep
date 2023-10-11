@@ -140,7 +140,11 @@ export let rangeSlider,
   rollInnerText,
   headEle,
   headInnerText,
-  pointsPath;
+  pointsPath,
+  svgContainer,
+  targetElment,
+  targetdWidth,
+  absDiv
 
 // This is the intializing function when the website will load first
 // init();
@@ -163,7 +167,8 @@ function init() {
 
       length = sealBehaviourData.length / frequency;
       lastIndex = (length - 1) * frequency;
-      perSecWidth = 85 / sealBehaviourData.length;
+      console.log(targetdWidth);
+      perSecWidth = targetdWidth / sealBehaviourData.length;
 
       const xArray = sealBehaviourData.map((item) => {
         return Number(item.Seconds) / 60;
@@ -310,8 +315,20 @@ function init() {
       confirmDuration = document.getElementById("confirmClip");
       zoomInBtn = document.createElement("button");
       zoomOutBtn = document.createElement("button");
-      chartDiv = document.getElementById("chartHoverDiv");
-
+      svgContainer = document.getElementsByClassName("svg-container")
+      targetElment = document.getElementsByClassName("drag")
+      absDiv = document.createElement("div")
+      targetdWidth = Number(targetElment[0].getAttribute('width'));
+      absDiv.style.width = targetdWidth + "px"
+      absDiv.style.position = "absolute"
+      absDiv.style.height = "129px"
+      absDiv.style.backgroundColor = "white"
+      absDiv.style.opacity = "0.8"
+      absDiv.style.top = "72px"
+      absDiv.style.right = "79px"
+      svgContainer[0].appendChild(absDiv)
+      // prentDiv.classList.add("parentdiv");
+      // absDiv.appendChild(prentDiv)
       // chartDiv.style.width = window.innerWidth * 0.0554 + "%";
       // console.log("chartDiv", window.innerWidth);
       // chartDiv.onmouseenter = function () {
@@ -584,21 +601,23 @@ function init() {
         return hours + ":" + minutes + ":" + seconds;
       };
 
+      perSecWidth = targetdWidth / sealBehaviourData.length;
       function currentStatus() {
+        console.log(perSecWidth, targetdWidth);
         if (Number(prevValue) < Number(rangeSlider.value)) {
           currentWidth =
-            Number(chartDiv.style.width.split("%")[0]) -
+            parseFloat(absDiv.style.width) -
             Number(perSecWidth) *
-              Number(Number(rangeSlider.value) - Number(prevValue));
+            Number(Number(rangeSlider.value) - Number(prevValue));
           console.log("minus", currentWidth);
         } else {
           currentWidth =
-            Number(chartDiv.style.width.split("%")[0]) +
+            parseFloat(absDiv.style.width) +
             Number(perSecWidth) *
-              (Number(prevValue) - Number(rangeSlider.value));
+            (Number(prevValue) - Number(rangeSlider.value));
           console.log("plus", currentWidth);
         }
-        chartDiv.style.width = currentWidth + "%";
+        absDiv.style.width = currentWidth + "px";
         const currentState =
           sealBehaviourData[Number(rangeSlider.value) * Number(frequency)];
         const prevState =
@@ -608,11 +627,11 @@ function init() {
           currentState?.Simple_Sleep_Code === "Active Waking"
             ? "#0081AA"
             : currentState?.Simple_Sleep_Code === "SWS"
-            ? "#00B448"
-            : currentState?.Simple_Sleep_Code === "REM" ||
-              currentState?.Simple_Sleep_Code === "Quiet Waking"
-            ? "#E2BE00"
-            : "";
+              ? "#00B448"
+              : currentState?.Simple_Sleep_Code === "REM" ||
+                currentState?.Simple_Sleep_Code === "Quiet Waking"
+                ? "#E2BE00"
+                : "";
         heartInnerText.innerText = `${Number(currentState.Heart_Rate)?.toFixed(
           2
         )}bpm`;
