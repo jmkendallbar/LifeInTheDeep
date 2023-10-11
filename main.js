@@ -481,7 +481,6 @@ function init() {
             return item;
           }
         });
-
         // initialSeconds = xArray1[0].Seconds;
         let startIndex = sealBehaviourData
           .map((item) => {
@@ -527,7 +526,7 @@ function init() {
           xArray1.length - 1,
           xArray1
         );
-        prevValue = rangeSlider.value - 1;
+        prevValue = rangeSlider.value;
         perSecWidth = targetdWidth / xArray1.length;
         absDiv.style.width = targetdWidth + "px";
         Plotly.update("chartDiv", updatePlotData.data, updatePlotData.layout);
@@ -610,6 +609,11 @@ function init() {
       function currentStatus() {
         console.log(perSecWidth, targetdWidth);
         if (Number(prevValue) < Number(rangeSlider.value)) {
+          currentWidth =
+            parseFloat(absDiv.style.width) -
+            Number(perSecWidth) *
+            Number(Number(rangeSlider.value) - Number(prevValue));
+        } else if (Number(prevValue) - 1 < Number(rangeSlider.value)) {
           currentWidth =
             parseFloat(absDiv.style.width) -
             Number(perSecWidth) *
