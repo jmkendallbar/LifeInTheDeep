@@ -527,11 +527,16 @@ function init() {
           xArray1.length - 1,
           xArray1
         );
-
+        prevValue = rangeSlider.value - 1;
+        perSecWidth = targetdWidth / xArray1.length;
+        absDiv.style.width = targetdWidth + "px";
         Plotly.update("chartDiv", updatePlotData.data, updatePlotData.layout);
       };
 
       playSpeedBtn.onclick = function () {
+        if (!isTimerStop) {
+          return;
+        }
         if (playSpeed === 1000) {
           playSpeed = 500;
           playSpeedBtn.innerText = "2x";
@@ -609,13 +614,11 @@ function init() {
             parseFloat(absDiv.style.width) -
             Number(perSecWidth) *
             Number(Number(rangeSlider.value) - Number(prevValue));
-          console.log("minus", currentWidth);
         } else {
           currentWidth =
             parseFloat(absDiv.style.width) +
             Number(perSecWidth) *
             (Number(prevValue) - Number(rangeSlider.value));
-          console.log("plus", currentWidth);
         }
         absDiv.style.width = currentWidth + "px";
         const currentState =
