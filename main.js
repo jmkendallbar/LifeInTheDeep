@@ -18,17 +18,14 @@ import elementStyle from "./elementStyle";
 import appendElement from "./appendElement";
 
 // path ---start
-import { GPUStatsPanel } from "three/addons/utils/GPUStatsPanel.js";
+// import { GPUStatsPanel } from "three/addons/utils/GPUStatsPanel.js";
 import { Line2 } from "three/addons/lines/Line2.js";
 import { LineMaterial } from "three/addons/lines/LineMaterial.js";
 import { LineGeometry } from "three/addons/lines/LineGeometry.js";
 import moveGeometryToCoordinates from "./moveGeometryToCoordinates";
 import { fetchDataFromAPI } from "./js/fetchDataFromAPI";
 
-const importPromises = [];
 let seal = [];
-let nextSeal = [];
-let nextSeal1 = [];
 let range;
 export let page = 0;
 export let perPage = 999;
@@ -58,45 +55,22 @@ loadingManager.onProgress = (item, loaded, total) => {
 // This function will be called when all resources are loaded
 loadingManager.onLoad = () => {
   loadingContainer.style.display = "none"; // Hide the loading animation
-  // Initialize and render your Three.js scene here
-  // init();
 };
 
-// Create an array of Promises for importing each file
-// var xyz;
-// for (xyz = 85; xyz <= 85; xyz++) {
-//   importPromises.push(import(`./seal-info/batch_${xyz}.json`));
-// }
 try {
-  const { data, totalRange, batchs } = await fetchDataFromAPI(85);
+  const { data, totalRange, batchs } = await fetchDataFromAPI(page);
   seal = data;
   range = totalRange;
 } catch (error) {
   console.log(error);
 }
-try {
-  const { data, totalRange, batchs } = await fetchDataFromAPI(86);
-  nextSeal = data;
-  range = totalRange;
-} catch (error) {
-  console.log(error);
-}
 
-try {
-  const { data, totalRange, batchs } = await fetchDataFromAPI(87);
-  nextSeal1 = data;
-  range = totalRange;
-} catch (error) {
-  console.log(error);
-}
-
-// let skip = 1;
 export let line, camera2;
 let line1;
 export let matLine, matLineBasic, matLineDashed;
 export let gpuPanel;
 export let gui;
-
+let nextInfo = [];
 // viewport
 export let inset = {
   insetWidth: "",
@@ -337,16 +311,6 @@ function init() {
       zoomOutBtn = document.createElement("button");
       chartDiv = document.getElementById("chartHoverDiv");
 
-      // chartDiv.style.width = window.innerWidth * 0.0554 + "%";
-      // console.log("chartDiv", window.innerWidth);
-      // chartDiv.onmouseenter = function () {
-      //   chartDiv.style.zIndex = -1;
-      // };
-
-      // chartDiv.onmouseout = function () {
-      //   chartDiv.style.zIndex = 1;
-      // };
-
       // timeline crop video's code start from here
       cropBtn.id = "cropBtnId";
       cropBtn.style.cursor = "pointer";
@@ -583,6 +547,7 @@ function init() {
         clearInterval(timer);
         page = Math.floor(rangeSlider.value / perPage);
         dataSetup(page);
+        sealBehaviourData = nextInfo;
         intervalFunction();
 
         if (!isTimerStop) {
@@ -616,28 +581,23 @@ function init() {
     }
   );
 }
-
+let skip1 = 0;
+export let skipper = 500;
 function intervalFunction() {
   timer = setInterval(() => {
     if (Number(rangeSlider.value) < Number(rangeSlider.max) - 1) {
       rangeSlider.value = rangeSlider.value * 1 + 1;
-      const skip = (page + 1) * perPage - 500;
-      const skip1 = (page + 1) * perPage;
+      const skip = (page + 1) * perPage - skipper;
       const ranger = Number(rangeSlider.value);
-      console.log("1", skip, skip1, ranger);
+      // console.log("1", skip, skip1, ranger);
       if (skip == ranger) {
-        // dataSetup(page);
-        createPointPath(nextSeal);
-      }
-      if (skip1 == ranger) {
+        skip1 = (page + 1) * perPage;
         page++;
-        page = Math.floor(Number(rangeSlider.value) / perPage);
-        if (page == 1) {
-          sealBehaviourData = nextSeal;
-        } else {
-          createPointPath(nextSeal1);
-          sealBehaviourData = nextSeal1;
-        }
+        dataSetup(page);
+      }
+      if (skip1 == ranger && ranger != 0) {
+        sealBehaviourData = nextInfo;
+        console.log(nextInfo);
       }
       currentStatus();
       moveGeometryToCoordinates(Number(rangeSlider.value));
@@ -652,7 +612,13 @@ function intervalFunction() {
 }
 
 function currentStatus() {
-  const skip = page * perPage;
+  let skip = 0;
+  if (Number(rangeSlider.value) % 999 == 0 || page == 0) {
+    skip = page * perPage;
+  }
+  if (page > 0) {
+    skip = page * perPage - skipper;
+  }
   if (Number(prevValue) < Number(rangeSlider.value)) {
     currentWidth =
       Number(chartDiv.style.width.split("%")[0]) -
@@ -687,7 +653,7 @@ function currentStatus() {
   pitchInnerText.innerText = `${Number(currentState?.pitch)?.toFixed(4)}`;
   rollInnerText.innerText = `${Number(currentState?.roll)?.toFixed(4)}`;
   headInnerText.innerText = `${Number(currentState?.heading)?.toFixed(4)}`;
-  // depthInnerText.innerText = `${Number(currentState["Depth"])?.toFixed(2)}m`;
+  depthInnerText.innerText = `${Number(currentState["Depth"])?.toFixed(2)}m`;
   if (!isStart) {
     if (currentState?.Simple_Sleep_Code === "REM") {
       if (
@@ -935,22 +901,15 @@ export function createPlane() {
 export async function dataSetup(page) {
   try {
     clearInterval(timer);
-    // showLoadingOverlay();
     const { data, batchs } = await fetchDataFromAPI(page);
     if (data && batchs) {
       prevValue = 0;
-      let arr = [];
       initialSeconds = Number(data[0].Seconds);
       frequency = Number(data[1].Seconds) - Number(data[0].Seconds);
       data.forEach((item) => {
-        arr[Number(item.Seconds) - initialSeconds] = item;
+        nextInfo[Number(item.Seconds) - initialSeconds] = item;
       });
-      // sealBehaviourData.splice(0, sealBehaviourData.length - 99)
-      // sealBehaviourData.push(...arr)
-      sealBehaviourData = arr;
-      console.log(sealBehaviourData);
-      createPointPath();
-      // hideLoadingOverlay();
+      createPointPath(nextInfo);
       intervalFunction();
     }
   } catch (error) {

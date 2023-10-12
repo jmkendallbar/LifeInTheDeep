@@ -10,6 +10,7 @@ import {
   cameraDistance,
   page,
   perPage,
+  skipper,
 } from "./main.js";
 
 export default function moveGeometryToCoordinates(j) {
@@ -23,18 +24,26 @@ export default function moveGeometryToCoordinates(j) {
     desiredCameraPosition;
   // Calculate the closest point on the path to the target coordinates
   let fraction = 0;
+  let skip = 0;
+  if (j % 999 == 0 || page == 0) {
+    skip = page * perPage;
+    console.log("called1", skip);
+  }
+  if (page > 0) {
+    skip = page * perPage - skipper;
+    console.log("called2", skip);
+  }
   while (fraction < 1) {
-    const skip = page * perPage;
-    // console.log("skip", pointsPath.curves[j], pointsPath.curves[0]);
+    console.log("skip", skip, j, j - skip);
     closestPointOnRotatedTrack = pointsPath.curves[j].getPointAt(fraction);
     currentPosition = pointsPath.curves[j].getPointAt(fraction + 1); // You can adjust the fraction value
     rotationMatrix = new THREE.Matrix4().makeRotationX(-Math.PI / 2); // Use the same rotation value
     closestPoint = closestPointOnRotatedTrack.applyMatrix4(rotationMatrix);
 
     nextPoint = currentPosition.applyMatrix4(rotationMatrix);
-    model.rotation.x = Number(sealBehaviourData[j - (skip + page)].pitch);
-    model.rotation.z = Number(sealBehaviourData[j - (skip + page)].roll);
-    model.rotation.y = Number(sealBehaviourData[j - (skip + page)].heading);
+    model.rotation.x = Number(sealBehaviourData[j - skip].pitch);
+    model.rotation.z = Number(sealBehaviourData[j - skip].roll);
+    model.rotation.y = Number(sealBehaviourData[j - skip].heading);
     // model.lookAt(nextPoint);
     model.position.copy(closestPoint);
 
