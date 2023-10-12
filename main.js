@@ -27,8 +27,11 @@ import { fetchDataFromAPI } from "./js/fetchDataFromAPI";
 
 let seal = [];
 let range;
-export let page = 0;
+export let page = 0,
+  page1 = 0;
 export let perPage = 999;
+export let count = 0;
+export let count1 = 0;
 // let model;
 
 const loadingContainer = document.getElementById("loading-container");
@@ -545,7 +548,10 @@ function init() {
       prevValue = Number(sealBehaviourData[0].Seconds) - initialSeconds;
       rangeSlider.onclick = function () {
         clearInterval(timer);
+        count = 0;
         page = Math.floor(rangeSlider.value / perPage);
+        page1 = Math.floor(rangeSlider.value / perPage);
+        pointsPath = new THREE.CurvePath();
         dataSetup(page);
         sealBehaviourData = nextInfo;
         intervalFunction();
@@ -582,21 +588,23 @@ function init() {
   );
 }
 let skip1 = 0;
-export let skipper = 500;
+export let skipper = 1;
 function intervalFunction() {
   timer = setInterval(() => {
     if (Number(rangeSlider.value) < Number(rangeSlider.max) - 1) {
+      count++;
       rangeSlider.value = rangeSlider.value * 1 + 1;
       const skip = (page + 1) * perPage - skipper;
       const ranger = Number(rangeSlider.value);
-      // console.log("1", skip, skip1, ranger);
       if (skip == ranger) {
         skip1 = (page + 1) * perPage;
         page++;
         dataSetup(page);
       }
-      if (skip1 == ranger && ranger != 0) {
+      if (skip1 == ranger) {
+        // pointsPath = new THREE.CurvePath();
         sealBehaviourData = nextInfo;
+        page1++;
         console.log(nextInfo);
       }
       currentStatus();
@@ -612,13 +620,14 @@ function intervalFunction() {
 }
 
 function currentStatus() {
-  let skip = 0;
-  if (Number(rangeSlider.value) % 999 == 0 || page == 0) {
-    skip = page * perPage;
-  }
-  if (page > 0) {
-    skip = page * perPage - skipper;
-  }
+  // let skip = 0;
+  // if (Number(rangeSlider.value) % 999 == 0 || page == 0) {
+  //   skip = page * perPage;
+  // }
+  // if (page > 0) {
+  //   skip = page * perPage - skipper;
+  // }
+  let skip = page1 * perPage;
   if (Number(prevValue) < Number(rangeSlider.value)) {
     currentWidth =
       Number(chartDiv.style.width.split("%")[0]) -
