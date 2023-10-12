@@ -547,13 +547,16 @@ function init() {
       // Slider logic start from here
       prevValue = Number(sealBehaviourData[0].Seconds) - initialSeconds;
       rangeSlider.onclick = function () {
+        showLoadingOverlay();
         clearInterval(timer);
-        count = 0;
         page = Math.floor(rangeSlider.value / perPage);
         page1 = Math.floor(rangeSlider.value / perPage);
+        let skip = page1 * perPage;
+        count = rangeSlider.value - skip;
         pointsPath = new THREE.CurvePath();
         dataSetup(page);
         sealBehaviourData = nextInfo;
+        hideLoadingOverlay();
         intervalFunction();
 
         if (!isTimerStop) {
@@ -588,7 +591,7 @@ function init() {
   );
 }
 let skip1 = 0;
-export let skipper = 1;
+export let skipper = 20;
 function intervalFunction() {
   timer = setInterval(() => {
     if (Number(rangeSlider.value) < Number(rangeSlider.max) - 1) {
