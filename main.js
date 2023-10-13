@@ -676,7 +676,7 @@ function currentStatus() {
   pitchInnerText.innerText = `${Number(currentState?.pitch)?.toFixed(4)}`;
   rollInnerText.innerText = `${Number(currentState?.roll)?.toFixed(4)}`;
   headInnerText.innerText = `${Number(currentState?.heading)?.toFixed(4)}`;
-  // depthInnerText.innerText = `${Number(currentState["Depth"])?.toFixed(2)}m`;
+  depthInnerText.innerText = `${Number(currentState["Depth"])?.toFixed(2)}m`;
   if (!isStart) {
     if (currentState?.Simple_Sleep_Code === "REM") {
       if (
