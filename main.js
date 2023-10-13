@@ -556,9 +556,9 @@ function init() {
       perSecWidth = targetdWidth / sealBehaviourData.length;
 
       // Creating track method call
-      colorTrack();
+      createPointPath();
       // Creating water surface method call
-      waterSurface();
+      createGrid();
 
       // initGui();
     }
@@ -696,7 +696,7 @@ function arrow(axes) {
 }
 
 // Seal track with color
-function colorTrack() {
+function createPointPath() {
   pointsPath = new THREE.CurvePath();
 
   sealBehaviourData.forEach((item, index) => {
@@ -816,7 +816,7 @@ function colorTrack() {
 }
 
 // Water surface
-function waterSurface() {
+function createGrid() {
   gridHelper = new THREE.GridHelper(1000, 500);
   gridHelper.rotation.x = 0.04;
   gridHelper.rotation.y = 0;
