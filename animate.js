@@ -79,6 +79,7 @@ export default function animate() {
   renderer.setClearColor(0x222222, 1);
 
   renderer.clearDepth();
+  camera2.aspect = 0.7
 
   renderer.setScissorTest(true);
 
@@ -88,9 +89,8 @@ export default function animate() {
     inset.insetWidth,
     inset.insetHeight
   );
-
   renderer.setViewport(
-    -860,
+    (-inset.insetWidth * 4) + 390,
     inset.insetWidth - 30,
     inset.insetWidth * 7,
     inset.insetHeight * 7
