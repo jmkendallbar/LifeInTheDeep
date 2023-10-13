@@ -9,8 +9,6 @@ import {
   depthEle,
   stateEle,
   playSpeedBtn,
-  // zoomInBtn,
-  // zoomOutBtn,
   depthInnerText,
   minuteInnerText,
   pitchEle,

@@ -26,7 +26,6 @@ import moveGeometryToCoordinates from "./moveGeometryToCoordinates";
 
 const importPromises = [];
 let seal = [];
-// let model;
 
 const loadingContainer = document.getElementById("loading-container");
 const loadingText = document.getElementById("loading-text");
@@ -41,13 +40,11 @@ loadingManager.onProgress = (item, loaded, total) => {
 // This function will be called when all resources are loaded
 loadingManager.onLoad = () => {
   loadingContainer.style.display = "none"; // Hide the loading animation
-  // Initialize and render your Three.js scene here
-  // init();
 };
 
 // Create an array of Promises for importing each file
 var xyz;
-for (xyz = 85; xyz <= 85; xyz++) {
+for (xyz = 85; xyz <= 87; xyz++) {
   importPromises.push(import(`./seal-info/batch_${xyz}.json`));
 }
 
@@ -61,18 +58,17 @@ Promise.all(importPromises)
       });
     });
     init();
-    // animate();
   })
   .catch((error) => {
     console.error("Error importing files:", error);
   });
 
-// let skip = 1;
+// Variables for track
 export let line, camera2;
-let line1;
 export let matLine, matLineBasic, matLineDashed;
 export let gpuPanel;
 export let gui;
+let line1;
 
 // viewport
 export let inset = {
@@ -80,13 +76,12 @@ export let inset = {
   insetHeight: "",
 };
 // declaring variables
-export let scene, renderer, camera, stats, model;
-export let controls;
+export let scene, renderer, camera, stats, model, controls, actions;
 export let skeleton, mixer, clock;
-export let crossFadeControls = [];
 export let idleAction, glideAction, swimAction;
 export let idleWeight, glideWeight, swimWeight;
-export let actions;
+export let crossFadeControls = [];
+export let cameraDistance = 25;
 export const nextStep = { sizeOfNextStep: 0 };
 export const settings = {
   setting: {},
@@ -100,7 +95,6 @@ export const weight = {
   swimWeight: 0,
 };
 export let sealBehaviourData = [];
-export let lastIndex;
 let isStart = true;
 let length = 0;
 export let gridHelper;
@@ -111,7 +105,10 @@ let initialSeconds;
 let frequency;
 let minStroke, maxStroke;
 let prevValue;
-export let cameraDistance = 25;
+let timer;
+let isTimerStop = true;
+export let lastIndex;
+
 // Element Variables
 export let rangeSlider,
   strokeEle,
@@ -129,8 +126,6 @@ export let rangeSlider,
   cropBtn,
   playBtn,
   resetBtn,
-  zoomInBtn,
-  zoomOutBtn,
   chartDiv,
   currentWidth,
   perSecWidth,
@@ -144,15 +139,11 @@ export let rangeSlider,
   svgContainer,
   targetElment,
   targetdWidth,
-  absDiv
+  absDiv;
 
-// This is the intializing function when the website will load first
-// init();
-
-// start init function
+// Initial call
 function init() {
-  // Display chart using Plotly --start
-  // creating instance for loader which is use to load our model
+  // creating instance for loader which is use to load our model by using s3 bucket
   const loader = new GLTFLoader(loadingManager);
   loader.load(
     "https://visualising-life-in-the-deep.s3.amazonaws.com/Seal_Animation.glb",
@@ -167,9 +158,9 @@ function init() {
 
       length = sealBehaviourData.length / frequency;
       lastIndex = (length - 1) * frequency;
-      console.log(targetdWidth);
       perSecWidth = targetdWidth / sealBehaviourData.length;
 
+      // Plotly chart -- start
       const xArray = sealBehaviourData.map((item) => {
         return Number(item.Seconds) / 60;
       });
@@ -201,7 +192,7 @@ function init() {
       Plotly.newPlot("chartDiv", plotData.data, plotData.layout);
       // plotly chart --end
 
-      // this is the container div where we are showing the overall UI video.
+      // This is the container div where we are showing the overall video.
       const container = document.getElementById("container");
       renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setPixelRatio(window.devicePixelRatio);
@@ -210,6 +201,7 @@ function init() {
       renderer.useLegacyLights = false;
       container.appendChild(renderer.domElement);
 
+      // First camera which is used for the big screen
       camera = new THREE.PerspectiveCamera(
         45,
         window.innerWidth / window.innerHeight,
@@ -217,6 +209,7 @@ function init() {
         1000
       );
 
+      // Second camera which is used for the small top left screen
       camera2 = new THREE.PerspectiveCamera(
         20,
         window.innerWidth / window.innerHeight,
@@ -224,11 +217,7 @@ function init() {
         1000
       );
 
-      // camera.up.set(0, 1, 0);
-
       controls = new OrbitControls(camera, renderer.domElement);
-      // controls.minDistance = 10;
-      // controls.maxDistance = 1000;
 
       clock = new THREE.Clock();
 
@@ -236,6 +225,7 @@ function init() {
       scene.background = new THREE.Color(0x33567d);
       scene.fog = new THREE.Fog(0x33567d, 100, 100);
 
+      // background fog and color -- start
       const hemiLight = new THREE.HemisphereLight(0x33567d, 0x33567d, 3);
       hemiLight.position.set(0, 100, 0);
       scene.add(hemiLight);
@@ -251,7 +241,7 @@ function init() {
       dirLight.shadow.camera.far = 40;
       scene.add(dirLight);
 
-      // ground
+      // end --
 
       const mesh = new THREE.Mesh(
         new THREE.PlaneGeometry(100, 100),
@@ -279,7 +269,7 @@ function init() {
 
       mixer = new THREE.AnimationMixer(model);
 
-      // once the model is loaded then we are picking the animations from the model like idle, gliding and swimming. 6, 28 and 15 is the index for that animation
+      // Used to select animation type
       idleAction = mixer.clipAction(animations[6]);
       glideAction = mixer.clipAction(animations[28]);
       swimAction = mixer.clipAction(animations[15]);
@@ -289,8 +279,6 @@ function init() {
       activateAllActions();
 
       // Declaring the varaibles for UI component like button, rangeSlider and more.
-      let timer;
-      let isTimerStop = true;
       rangeSlider = document.createElement("input");
       pauseBtn = document.getElementById("pause-icon");
       cropBtn = document.getElementById("crop-icon");
@@ -313,31 +301,18 @@ function init() {
       pitchInnerText = document.createElement("span");
       playSpeedBtn = document.createElement("button");
       confirmDuration = document.getElementById("confirmClip");
-      zoomInBtn = document.createElement("button");
-      zoomOutBtn = document.createElement("button");
-      svgContainer = document.getElementsByClassName("svg-container")
-      targetElment = document.getElementsByClassName("drag")
-      absDiv = document.createElement("div")
-      targetdWidth = Number(targetElment[0].getAttribute('width'));
-      absDiv.style.width = targetdWidth + "px"
-      absDiv.style.position = "absolute"
-      absDiv.style.height = "129px"
-      absDiv.style.backgroundColor = "white"
-      absDiv.style.opacity = "0.8"
-      absDiv.style.top = "72px"
-      absDiv.style.right = "79px"
-      svgContainer[0].appendChild(absDiv)
-      // prentDiv.classList.add("parentdiv");
-      // absDiv.appendChild(prentDiv)
-      // chartDiv.style.width = window.innerWidth * 0.0554 + "%";
-      // console.log("chartDiv", window.innerWidth);
-      // chartDiv.onmouseenter = function () {
-      //   chartDiv.style.zIndex = -1;
-      // };
-
-      // chartDiv.onmouseout = function () {
-      //   chartDiv.style.zIndex = 1;
-      // };
+      svgContainer = document.getElementsByClassName("svg-container");
+      targetElment = document.getElementsByClassName("drag");
+      absDiv = document.createElement("div");
+      targetdWidth = Number(targetElment[0].getAttribute("width"));
+      absDiv.style.width = targetdWidth + "px";
+      absDiv.style.position = "absolute";
+      absDiv.style.height = "129px";
+      absDiv.style.backgroundColor = "white";
+      absDiv.style.opacity = "0.8";
+      absDiv.style.top = "72px";
+      absDiv.style.right = "79px";
+      svgContainer[0].appendChild(absDiv);
 
       // timeline crop video's code start from here
       cropBtn.id = "cropBtnId";
@@ -455,16 +430,7 @@ function init() {
         rangeSlider.value = rangeSlider.min;
       };
 
-      // zoom in button
-      zoomInBtn.onclick = function () {
-        cameraDistance--;
-      };
-
-      // zoom in button
-      zoomOutBtn.onclick = function () {
-        cameraDistance++;
-      };
-
+      // clip video and chart method
       confirmDuration.onclick = function () {
         clearInterval(timer);
         if (playBtn.style.display === "block") {
@@ -532,6 +498,7 @@ function init() {
         Plotly.update("chartDiv", updatePlotData.data, updatePlotData.layout);
       };
 
+      // Play speed control method
       playSpeedBtn.onclick = function () {
         if (!isTimerStop) {
           return;
@@ -569,10 +536,10 @@ function init() {
         }
       };
 
-      // appending the child element into the DOM
+      // Appending the child element into the DOM
       appendElement();
 
-      // Slider logic start from here
+      // Slider onclick method
       prevValue = Number(sealBehaviourData[0].Seconds) - initialSeconds;
       rangeSlider.onclick = function () {
         clearInterval(timer);
@@ -586,280 +553,280 @@ function init() {
         }
       };
       intervalFunction();
-
-      String.prototype.toHHMMSS = function () {
-        var sec_num = parseInt(this, 10); // don't forget the second param
-        var hours = Math.floor(sec_num / 3600);
-        var minutes = Math.floor((sec_num - hours * 3600) / 60);
-        var seconds = sec_num - hours * 3600 - minutes * 60;
-
-        if (hours < 10) {
-          hours = "0" + hours;
-        }
-        if (minutes < 10) {
-          minutes = "0" + minutes;
-        }
-        if (seconds < 10) {
-          seconds = "0" + seconds;
-        }
-        return hours + ":" + minutes + ":" + seconds;
-      };
-
       perSecWidth = targetdWidth / sealBehaviourData.length;
-      function currentStatus() {
-        console.log(perSecWidth, targetdWidth);
-        if (Number(prevValue) < Number(rangeSlider.value)) {
-          currentWidth =
-            parseFloat(absDiv.style.width) -
-            Number(perSecWidth) *
-            Number(Number(rangeSlider.value) - Number(prevValue));
-        } else if (Number(prevValue) - 1 < Number(rangeSlider.value)) {
-          currentWidth =
-            parseFloat(absDiv.style.width) -
-            Number(perSecWidth) *
-            Number(Number(rangeSlider.value) - Number(prevValue));
-        } else {
-          currentWidth =
-            parseFloat(absDiv.style.width) +
-            Number(perSecWidth) *
-            (Number(prevValue) - Number(rangeSlider.value));
-        }
-        absDiv.style.width = currentWidth + "px";
-        const currentState =
-          sealBehaviourData[Number(rangeSlider.value) * Number(frequency)];
-        const prevState =
-          sealBehaviourData[Number(prevValue) * Number(frequency)];
-        stateEle.innerText = currentState?.Simple_Sleep_Code;
-        stateEle.style.backgroundColor =
-          currentState?.Simple_Sleep_Code === "Active Waking"
-            ? "#0081AA"
-            : currentState?.Simple_Sleep_Code === "SWS"
-              ? "#00B448"
-              : currentState?.Simple_Sleep_Code === "REM" ||
-                currentState?.Simple_Sleep_Code === "Quiet Waking"
-                ? "#E2BE00"
-                : "";
-        heartInnerText.innerText = `${Number(currentState.Heart_Rate)?.toFixed(
-          2
-        )}bpm`;
-        strokeInnerText.innerText = `${Number(
-          currentState.Stroke_Rate
-        )?.toFixed(2)}spm`;
-        minuteInnerText.innerText = `${currentState.Seconds.toString().toHHMMSS()}`;
-        pitchInnerText.innerText = `${Number(currentState.pitch)?.toFixed(4)}`;
-        rollInnerText.innerText = `${Number(currentState.roll)?.toFixed(4)}`;
-        headInnerText.innerText = `${Number(currentState.heading)?.toFixed(4)}`;
-        depthInnerText.innerText = `${Number(currentState["Depth"])?.toFixed(
-          2
-        )}m`;
-        if (!isStart) {
-          if (currentState.Simple_Sleep_Code === "REM") {
-            if (
-              prevState.Simple_Sleep_Code === "SWS" ||
-              prevState.Simple_Sleep_Code === "Quiet Waking"
-            ) {
-              prepareCrossFade(glideAction, idleAction, 1.0);
-            } else if (prevState.Simple_Sleep_Code === "Active Waking") {
-              prepareCrossFade(swimAction, idleAction, 1.0);
-            }
-          }
-          if (
-            currentState.Simple_Sleep_Code === "SWS" ||
-            currentState.Simple_Sleep_Code === "Quiet Waking"
-          ) {
-            if (prevState.Simple_Sleep_Code === "REM") {
-              prepareCrossFade(idleAction, glideAction, 1.0);
-            } else if (prevState.Simple_Sleep_Code === "Active Waking") {
-              prepareCrossFade(swimAction, glideAction, 1.0);
-            }
-          }
-          if (currentState.Simple_Sleep_Code === "Active Waking") {
-            if (prevState.Simple_Sleep_Code === "REM") {
-              prepareCrossFade(idleAction, swimAction, 1.0);
-            } else if (
-              prevState.Simple_Sleep_Code === "SWS" ||
-              prevState.Simple_Sleep_Code === "Quiet Waking"
-            ) {
-              prepareCrossFade(glideAction, swimAction, 1.0);
-            }
-          }
-        } else if (isStart) {
-          if (currentState.Simple_Sleep_Code === "Active Waking") {
-            prepareCrossFade(glideAction, swimAction, 1.0);
-          } else if (currentState.Simple_Sleep_Code === "REM") {
-            prepareCrossFade(glideAction, idleAction, 1.0);
-          }
-          isStart = false;
-        }
-        prevValue = rangeSlider.value;
-      }
 
-      // end --------------------
+      // Creating track method call
+      colorTrack();
+      // Creating water surface method call
+      waterSurface();
 
-      pointsPath = new THREE.CurvePath();
-
-      sealBehaviourData.forEach((item, index) => {
-        if (index < sealBehaviourData.length - 1) {
-          pointsPath.add(
-            new THREE.LineCurve3(
-              new THREE.Vector3(
-                Number(sealBehaviourData[index].x),
-                Number(sealBehaviourData[index].y),
-                Number(sealBehaviourData[index].z)
-              ),
-              new THREE.Vector3(
-                Number(sealBehaviourData[index + 1].x),
-                Number(sealBehaviourData[index + 1].y),
-                Number(sealBehaviourData[index + 1].z)
-              )
-            )
-          );
-        }
-      });
-
-      const points = pointsPath.curves.reduce(
-        (p, d) => [...p, ...d.getPoints(20)],
-        []
-      );
-
-      const positions = [];
-      const colors = [];
-
-      const spline = new THREE.CatmullRomCurve3(points);
-      const divisions = Math.round(points.length);
-      const point = new THREE.Vector3();
-      const color = new THREE.Color();
-
-      const stateColors = [0x535f97, 0x368c87, 0xe9bc65, 0x83bd56, 0x4787b9];
-
-      for (let i = 0, l = divisions; i < l; i++) {
-        const t = i / (l - 1);
-        spline.getPoint(t, point);
-        positions.push(point.x, point.y, point.z);
-        if (
-          sealBehaviourData[Math.ceil(i / 21)]?.Simple_Sleep_Code ===
-          "Active Waking"
-        ) {
-          color.setHex(stateColors[0]);
-          colors.push(color.r, color.g, color.b);
-        } else if (
-          sealBehaviourData[Math.ceil(i / 21)]?.Simple_Sleep_Code === "SWS"
-        ) {
-          color.setHex(stateColors[3]);
-          colors.push(color.r, color.g, color.b);
-        } else {
-          color.setHex(stateColors[2]);
-          colors.push(color.r, color.g, color.b);
-        }
-      }
-
-      const geometry = new LineGeometry();
-      geometry.setPositions(positions);
-      geometry.setColors(colors);
-
-      matLine = new LineMaterial({
-        color: 0xffffff,
-        linewidth: 1, // in world units with size attenuation, pixels otherwise
-        vertexColors: true,
-
-        //resolution:  // to be set by renderer, eventually
-        dashed: false,
-        alphaToCoverage: true,
-      });
-
-      line = new Line2(geometry, matLine);
-      line.computeLineDistances();
-      line.scale.set(1, 1, 1);
-      scene.add(line);
-
-      arrow("x");
-      arrow("y");
-      arrow("z");
-
-      function arrow(axes) {
-        var dir;
-        var origin = new THREE.Vector3(0, 0, 0);
-        var len = 1;
-        var col = axes === "x" ? 0xff0000 : axes === "y" ? 0x00ff00 : 0x0000ff;
-        if (axes === "x") dir = new THREE.Vector3(1, 0, 0);
-        if (axes === "y") dir = new THREE.Vector3(0, 1, 0);
-        if (axes === "z") dir = new THREE.Vector3(0, 0, 1);
-        var arrowHelper = new THREE.ArrowHelper(dir, origin, len, col);
-        line.add(arrowHelper);
-      }
-
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute(
-        "position",
-        new THREE.Float32BufferAttribute(positions, 3)
-      );
-      geo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-
-      matLineBasic = new THREE.LineBasicMaterial({ vertexColors: true });
-      matLineDashed = new THREE.LineDashedMaterial({
-        vertexColors: true,
-        scale: 2,
-        dashSize: 1,
-        gapSize: 1,
-      });
-
-      line1 = new THREE.Line(geo, matLineBasic);
-      line1.computeLineDistances();
-      line1.visible = false;
-      scene.add(line1);
-
-      const lod = new THREE.LOD();
-
-      lod.addLevel(line, 20);
-      lod.addLevel(line1, 20);
-
-      scene.add(lod);
-      lod.rotation.x = -Math.PI / 2;
-
-      window.addEventListener("resize", onWindowResize);
-      onWindowResize();
-
-      stats = new Stats();
-      // document.body.appendChild(stats.dom);
-
-      gpuPanel = new GPUStatsPanel(renderer.getContext());
-      stats.addPanel(gpuPanel);
-      stats.showPanel(0);
-
-      animate();
-
-      gridHelper = new THREE.GridHelper(1000, 500);
-      gridHelper.rotation.x = 0.04;
-      gridHelper.rotation.y = 0;
-      gridHelper.rotation.z = 0;
-      gridHelper.position.set(0, 0, 0);
-      const gridLod = new THREE.LOD();
-      gridLod.addLevel(gridHelper, 20);
-      scene.add(gridLod);
-
-      var axesHelper = new THREE.AxesHelper(10);
-      scene.add(axesHelper);
-      axesHelper.rotation.x = -Math.PI / 2;
-
-      function intervalFunction() {
-        timer = setInterval(() => {
-          if (Number(rangeSlider.value) < Number(rangeSlider.max) - 1) {
-            rangeSlider.value = rangeSlider.value * 1 + 1;
-            currentStatus();
-            moveGeometryToCoordinates(Number(rangeSlider.value));
-          } else {
-            clearInterval(timer);
-            pauseContinue();
-            isTimerStop = false;
-            pauseBtn.style.display = "none";
-            playBtn.style.display = "block";
-          }
-        }, [playSpeed]);
-      }
       // initGui();
-      // END SUR
     }
   );
+}
 
-  // JS Charting
+String.prototype.toHHMMSS = function () {
+  var sec_num = parseInt(this, 10); // don't forget the second param
+  var hours = Math.floor(sec_num / 3600);
+  var minutes = Math.floor((sec_num - hours * 3600) / 60);
+  var seconds = sec_num - hours * 3600 - minutes * 60;
+
+  if (hours < 10) {
+    hours = "0" + hours;
+  }
+  if (minutes < 10) {
+    minutes = "0" + minutes;
+  }
+  if (seconds < 10) {
+    seconds = "0" + seconds;
+  }
+  return hours + ":" + minutes + ":" + seconds;
+};
+
+function intervalFunction() {
+  timer = setInterval(() => {
+    if (Number(rangeSlider.value) < Number(rangeSlider.max) - 1) {
+      rangeSlider.value = rangeSlider.value * 1 + 1;
+      currentStatus();
+      moveGeometryToCoordinates(Number(rangeSlider.value));
+    } else {
+      clearInterval(timer);
+      pauseContinue();
+      isTimerStop = false;
+      pauseBtn.style.display = "none";
+      playBtn.style.display = "block";
+    }
+  }, [playSpeed]);
+}
+
+function currentStatus() {
+  if (Number(prevValue) < Number(rangeSlider.value)) {
+    currentWidth =
+      parseFloat(absDiv.style.width) -
+      Number(perSecWidth) *
+        Number(Number(rangeSlider.value) - Number(prevValue));
+  } else if (Number(prevValue) - 1 < Number(rangeSlider.value)) {
+    currentWidth =
+      parseFloat(absDiv.style.width) -
+      Number(perSecWidth) *
+        Number(Number(rangeSlider.value) - Number(prevValue));
+  } else {
+    currentWidth =
+      parseFloat(absDiv.style.width) +
+      Number(perSecWidth) * (Number(prevValue) - Number(rangeSlider.value));
+  }
+  absDiv.style.width = currentWidth + "px";
+  const currentState =
+    sealBehaviourData[Number(rangeSlider.value) * Number(frequency)];
+  const prevState = sealBehaviourData[Number(prevValue) * Number(frequency)];
+  stateEle.innerText = currentState?.Simple_Sleep_Code;
+  stateEle.style.backgroundColor =
+    currentState?.Simple_Sleep_Code === "Active Waking"
+      ? "#0081AA"
+      : currentState?.Simple_Sleep_Code === "SWS"
+      ? "#00B448"
+      : currentState?.Simple_Sleep_Code === "REM" ||
+        currentState?.Simple_Sleep_Code === "Quiet Waking"
+      ? "#E2BE00"
+      : "";
+  heartInnerText.innerText = `${Number(currentState.Heart_Rate)?.toFixed(
+    2
+  )}bpm`;
+  strokeInnerText.innerText = `${Number(currentState.Stroke_Rate)?.toFixed(
+    2
+  )}spm`;
+  minuteInnerText.innerText = `${currentState.Seconds.toString().toHHMMSS()}`;
+  pitchInnerText.innerText = `${Number(currentState.pitch)?.toFixed(4)}`;
+  rollInnerText.innerText = `${Number(currentState.roll)?.toFixed(4)}`;
+  headInnerText.innerText = `${Number(currentState.heading)?.toFixed(4)}`;
+  depthInnerText.innerText = `${Number(currentState["Depth"])?.toFixed(2)}m`;
+  if (!isStart) {
+    if (currentState.Simple_Sleep_Code === "REM") {
+      if (
+        prevState.Simple_Sleep_Code === "SWS" ||
+        prevState.Simple_Sleep_Code === "Quiet Waking"
+      ) {
+        prepareCrossFade(glideAction, idleAction, 1.0);
+      } else if (prevState.Simple_Sleep_Code === "Active Waking") {
+        prepareCrossFade(swimAction, idleAction, 1.0);
+      }
+    }
+    if (
+      currentState.Simple_Sleep_Code === "SWS" ||
+      currentState.Simple_Sleep_Code === "Quiet Waking"
+    ) {
+      if (prevState.Simple_Sleep_Code === "REM") {
+        prepareCrossFade(idleAction, glideAction, 1.0);
+      } else if (prevState.Simple_Sleep_Code === "Active Waking") {
+        prepareCrossFade(swimAction, glideAction, 1.0);
+      }
+    }
+    if (currentState.Simple_Sleep_Code === "Active Waking") {
+      if (prevState.Simple_Sleep_Code === "REM") {
+        prepareCrossFade(idleAction, swimAction, 1.0);
+      } else if (
+        prevState.Simple_Sleep_Code === "SWS" ||
+        prevState.Simple_Sleep_Code === "Quiet Waking"
+      ) {
+        prepareCrossFade(glideAction, swimAction, 1.0);
+      }
+    }
+  } else if (isStart) {
+    if (currentState.Simple_Sleep_Code === "Active Waking") {
+      prepareCrossFade(glideAction, swimAction, 1.0);
+    } else if (currentState.Simple_Sleep_Code === "REM") {
+      prepareCrossFade(glideAction, idleAction, 1.0);
+    }
+    isStart = false;
+  }
+  prevValue = rangeSlider.value;
+}
+
+// Method for x,y and z arrow axis
+function arrow(axes) {
+  var dir;
+  var origin = new THREE.Vector3(0, 0, 0);
+  var len = 1;
+  var col = axes === "x" ? 0xff0000 : axes === "y" ? 0x00ff00 : 0x0000ff;
+  if (axes === "x") dir = new THREE.Vector3(1, 0, 0);
+  if (axes === "y") dir = new THREE.Vector3(0, 1, 0);
+  if (axes === "z") dir = new THREE.Vector3(0, 0, 1);
+  var arrowHelper = new THREE.ArrowHelper(dir, origin, len, col);
+  line.add(arrowHelper);
+}
+
+// Seal track with color
+function colorTrack() {
+  pointsPath = new THREE.CurvePath();
+
+  sealBehaviourData.forEach((item, index) => {
+    if (index < sealBehaviourData.length - 1) {
+      pointsPath.add(
+        new THREE.LineCurve3(
+          new THREE.Vector3(
+            Number(sealBehaviourData[index].x),
+            Number(sealBehaviourData[index].y),
+            Number(sealBehaviourData[index].z)
+          ),
+          new THREE.Vector3(
+            Number(sealBehaviourData[index + 1].x),
+            Number(sealBehaviourData[index + 1].y),
+            Number(sealBehaviourData[index + 1].z)
+          )
+        )
+      );
+    }
+  });
+
+  const points = pointsPath.curves.reduce(
+    (p, d) => [...p, ...d.getPoints(20)],
+    []
+  );
+
+  const positions = [];
+  const colors = [];
+
+  const spline = new THREE.CatmullRomCurve3(points);
+  const divisions = Math.round(points.length);
+  const point = new THREE.Vector3();
+  const color = new THREE.Color();
+
+  const stateColors = [0x535f97, 0x368c87, 0xe9bc65, 0x83bd56, 0x4787b9];
+
+  for (let i = 0, l = divisions; i < l; i++) {
+    const t = i / (l - 1);
+    spline.getPoint(t, point);
+    positions.push(point.x, point.y, point.z);
+    if (
+      sealBehaviourData[Math.ceil(i / 21)]?.Simple_Sleep_Code ===
+      "Active Waking"
+    ) {
+      color.setHex(stateColors[0]);
+      colors.push(color.r, color.g, color.b);
+    } else if (
+      sealBehaviourData[Math.ceil(i / 21)]?.Simple_Sleep_Code === "SWS"
+    ) {
+      color.setHex(stateColors[3]);
+      colors.push(color.r, color.g, color.b);
+    } else {
+      color.setHex(stateColors[2]);
+      colors.push(color.r, color.g, color.b);
+    }
+  }
+
+  const geometry = new LineGeometry();
+  geometry.setPositions(positions);
+  geometry.setColors(colors);
+
+  matLine = new LineMaterial({
+    color: 0xffffff,
+    linewidth: 1, // in world units with size attenuation, pixels otherwise
+    vertexColors: true,
+
+    //resolution:  // to be set by renderer, eventually
+    dashed: false,
+    alphaToCoverage: true,
+  });
+
+  line = new Line2(geometry, matLine);
+  line.computeLineDistances();
+  line.scale.set(1, 1, 1);
+  scene.add(line);
+
+  arrow("x");
+  arrow("y");
+  arrow("z");
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+
+  matLineBasic = new THREE.LineBasicMaterial({ vertexColors: true });
+  matLineDashed = new THREE.LineDashedMaterial({
+    vertexColors: true,
+    scale: 2,
+    dashSize: 1,
+    gapSize: 1,
+  });
+
+  line1 = new THREE.Line(geo, matLineBasic);
+  line1.computeLineDistances();
+  line1.visible = false;
+  scene.add(line1);
+
+  const lod = new THREE.LOD();
+
+  lod.addLevel(line, 20);
+  lod.addLevel(line1, 20);
+
+  scene.add(lod);
+  lod.rotation.x = -Math.PI / 2;
+
+  window.addEventListener("resize", onWindowResize);
+  onWindowResize();
+
+  stats = new Stats();
+  // document.body.appendChild(stats.dom);
+
+  gpuPanel = new GPUStatsPanel(renderer.getContext());
+  stats.addPanel(gpuPanel);
+  stats.showPanel(0);
+
+  animate();
+}
+
+// Water surface
+function waterSurface() {
+  gridHelper = new THREE.GridHelper(1000, 500);
+  gridHelper.rotation.x = 0.04;
+  gridHelper.rotation.y = 0;
+  gridHelper.rotation.z = 0;
+  gridHelper.position.set(0, 0, 0);
+  const gridLod = new THREE.LOD();
+  gridLod.addLevel(gridHelper, 20);
+  scene.add(gridLod);
+
+  var axesHelper = new THREE.AxesHelper(10);
+  scene.add(axesHelper);
+  axesHelper.rotation.x = -Math.PI / 2;
 }

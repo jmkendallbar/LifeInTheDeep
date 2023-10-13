@@ -20,8 +20,6 @@ import {
   headEle,
   pitchEle,
   pitchInnerText,
-  // zoomInBtn,
-  // zoomOutBtn,
 } from "./main";
 
 export default function appendElement() {

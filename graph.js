@@ -1,5 +1,3 @@
-// import { sealBehaviourData } from "./main";
-
 export default function drawGraph(
   xArray,
   yArray,

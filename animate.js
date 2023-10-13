@@ -10,7 +10,6 @@ import {
   renderer,
   camera,
   stats,
-  controls,
   nextStep,
   camera2,
   matLine,
@@ -79,7 +78,7 @@ export default function animate() {
   renderer.setClearColor(0x222222, 1);
 
   renderer.clearDepth();
-  camera2.aspect = 0.7
+  camera2.aspect = 0.7;
 
   renderer.setScissorTest(true);
 
@@ -90,24 +89,11 @@ export default function animate() {
     inset.insetHeight
   );
   renderer.setViewport(
-    (-inset.insetWidth * 4) + 390,
+    -inset.insetWidth * 4 + 390,
     inset.insetWidth - 30,
     inset.insetWidth * 7,
     inset.insetHeight * 7
   );
-  // renderer.setScissor(
-  //   60,
-  //   inset.insetHeight * 2,
-  //   inset.insetWidth,
-  //   inset.insetHeight
-  // );
-
-  // renderer.setViewport(
-  //   -530,
-  //   inset.insetHeight * 2 - 140,
-  //   inset.insetWidth * 6,
-  //   inset.insetHeight * 6
-  // );
 
   camera2.position.copy(camera.position);
   camera2.quaternion.copy(camera.quaternion);
