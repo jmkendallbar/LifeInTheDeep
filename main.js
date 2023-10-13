@@ -69,24 +69,24 @@ try {
 }
 
 export let line, camera2;
-let line1;
 export let matLine, matLineBasic, matLineDashed;
 export let gpuPanel;
 export let gui;
 let nextInfo = [];
+let line1;
+
 // viewport
 export let inset = {
   insetWidth: "",
   insetHeight: "",
 };
 // declaring variables
-export let scene, renderer, camera, stats, model;
-export let controls;
+export let scene, renderer, camera, stats, model, controls, actions;
 export let skeleton, mixer, clock;
-export let crossFadeControls = [];
 export let idleAction, glideAction, swimAction;
 export let idleWeight, glideWeight, swimWeight;
-export let actions;
+export let crossFadeControls = [];
+export let cameraDistance = 25;
 export const nextStep = { sizeOfNextStep: 0 };
 export const settings = {
   setting: {},
@@ -100,7 +100,6 @@ export const weight = {
   swimWeight: 0,
 };
 export let sealBehaviourData = [];
-export let lastIndex;
 let isStart = true;
 let length = 0;
 export let gridHelper;
@@ -111,7 +110,7 @@ let initialSeconds;
 let frequency;
 let minStroke, maxStroke;
 let prevValue;
-export let cameraDistance = 25;
+export let lastIndex;
 // Element Variables
 export let rangeSlider,
   strokeEle,
@@ -129,8 +128,6 @@ export let rangeSlider,
   cropBtn,
   playBtn,
   resetBtn,
-  zoomInBtn,
-  zoomOutBtn,
   chartDiv,
   currentWidth,
   perSecWidth,
@@ -140,7 +137,11 @@ export let rangeSlider,
   rollInnerText,
   headEle,
   headInnerText,
-  pointsPath;
+  pointsPath,
+  svgContainer,
+  targetElment,
+  targetdWidth,
+  absDiv;
 
 let timer;
 let isTimerStop = true;
@@ -150,8 +151,7 @@ init();
 // let lod = new THREE.LOD();
 // start init function
 function init() {
-  // Display chart using Plotly --start
-  // creating instance for loader which is use to load our model
+  // creating instance for loader which is use to load our model by using s3 bucket
   const loader = new GLTFLoader(loadingManager);
   loader.load(
     "https://visualising-life-in-the-deep.s3.amazonaws.com/Seal_Animation.glb",
@@ -166,8 +166,9 @@ function init() {
 
       length = sealBehaviourData.length / frequency;
       lastIndex = (length - 1) * frequency;
-      perSecWidth = 85 / sealBehaviourData.length;
+      perSecWidth = targetdWidth / sealBehaviourData.length;
 
+      // Plotly chart -- start
       const xArray = sealBehaviourData.map((item) => {
         return Number(item.Seconds) / 60;
       });
@@ -199,7 +200,7 @@ function init() {
       Plotly.newPlot("chartDiv", plotData.data, plotData.layout);
       // plotly chart --end
 
-      // this is the container div where we are showing the overall UI video.
+      // This is the container div where we are showing the overall video.
       const container = document.getElementById("container");
       renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setPixelRatio(window.devicePixelRatio);
@@ -208,6 +209,7 @@ function init() {
       renderer.useLegacyLights = false;
       container.appendChild(renderer.domElement);
 
+      // First camera which is used for the big screen
       camera = new THREE.PerspectiveCamera(
         45,
         window.innerWidth / window.innerHeight,
@@ -215,6 +217,7 @@ function init() {
         1000
       );
 
+      // Second camera which is used for the small top left screen
       camera2 = new THREE.PerspectiveCamera(
         20,
         window.innerWidth / window.innerHeight,
@@ -222,11 +225,7 @@ function init() {
         1000
       );
 
-      // camera.up.set(0, 1, 0);
-
       controls = new OrbitControls(camera, renderer.domElement);
-      // controls.minDistance = 10;
-      // controls.maxDistance = 1000;
 
       clock = new THREE.Clock();
 
@@ -234,6 +233,7 @@ function init() {
       scene.background = new THREE.Color(0x33567d);
       scene.fog = new THREE.Fog(0x33567d, 100, 100);
 
+      // background fog and color -- start
       const hemiLight = new THREE.HemisphereLight(0x33567d, 0x33567d, 3);
       hemiLight.position.set(0, 100, 0);
       scene.add(hemiLight);
@@ -249,7 +249,7 @@ function init() {
       dirLight.shadow.camera.far = 40;
       scene.add(dirLight);
 
-      // ground
+      // end --
 
       const mesh = new THREE.Mesh(
         new THREE.PlaneGeometry(100, 100),
@@ -278,7 +278,7 @@ function init() {
 
       mixer = new THREE.AnimationMixer(model);
 
-      // once the model is loaded then we are picking the animations from the model like idle, gliding and swimming. 6, 28 and 15 is the index for that animation
+      // Used to select animation type
       idleAction = mixer.clipAction(animations[6]);
       glideAction = mixer.clipAction(animations[28]);
       swimAction = mixer.clipAction(animations[15]);
@@ -310,9 +310,19 @@ function init() {
       pitchInnerText = document.createElement("span");
       playSpeedBtn = document.createElement("button");
       confirmDuration = document.getElementById("confirmClip");
-      zoomInBtn = document.createElement("button");
-      zoomOutBtn = document.createElement("button");
       chartDiv = document.getElementById("chartHoverDiv");
+      svgContainer = document.getElementsByClassName("svg-container");
+      targetElment = document.getElementsByClassName("drag");
+      absDiv = document.createElement("div");
+      targetdWidth = Number(targetElment[0].getAttribute("width"));
+      absDiv.style.width = targetdWidth + "px";
+      absDiv.style.position = "absolute";
+      absDiv.style.height = "129px";
+      absDiv.style.backgroundColor = "white";
+      absDiv.style.opacity = "0.8";
+      absDiv.style.top = "72px";
+      absDiv.style.right = "79px";
+      svgContainer[0].appendChild(absDiv);
 
       // timeline crop video's code start from here
       cropBtn.id = "cropBtnId";
@@ -431,16 +441,7 @@ function init() {
         rangeSlider.value = rangeSlider.min;
       };
 
-      // zoom in button
-      zoomInBtn.onclick = function () {
-        cameraDistance--;
-      };
-
-      // zoom in button
-      zoomOutBtn.onclick = function () {
-        cameraDistance++;
-      };
-
+      // clip video and chart method
       confirmDuration.onclick = function () {
         clearInterval(timer);
         if (playBtn.style.display === "block") {
@@ -457,7 +458,6 @@ function init() {
             return item;
           }
         });
-
         // initialSeconds = xArray1[0].Seconds;
         let startIndex = sealBehaviourData
           .map((item) => {
@@ -503,11 +503,17 @@ function init() {
           xArray1.length - 1,
           xArray1
         );
-
+        prevValue = rangeSlider.value;
+        perSecWidth = targetdWidth / xArray1.length;
+        absDiv.style.width = targetdWidth + "px";
         Plotly.update("chartDiv", updatePlotData.data, updatePlotData.layout);
       };
 
+      // Play speed control method
       playSpeedBtn.onclick = function () {
+        if (!isTimerStop) {
+          return;
+        }
         if (playSpeed === 1000) {
           playSpeed = 500;
           playSpeedBtn.innerText = "2x";
@@ -541,13 +547,13 @@ function init() {
         }
       };
 
-      // appending the child element into the DOM
+      // Appending the child element into the DOM
       appendElement();
 
-      // Slider logic start from here
+      // Slider onclick method
       prevValue = Number(sealBehaviourData[0].Seconds) - initialSeconds;
       rangeSlider.onclick = function () {
-        showLoadingOverlay();
+        // showLoadingOverlay();
         clearInterval(timer);
         page = Math.floor(rangeSlider.value / perPage);
         page1 = Math.floor(rangeSlider.value / perPage);
@@ -556,7 +562,7 @@ function init() {
         pointsPath = new THREE.CurvePath();
         dataSetup(page);
         sealBehaviourData = nextInfo;
-        hideLoadingOverlay();
+        // hideLoadingOverlay();
         intervalFunction();
 
         if (!isTimerStop) {
@@ -567,29 +573,36 @@ function init() {
         }
       };
       intervalFunction();
+      perSecWidth = targetdWidth / sealBehaviourData.length;
 
-      String.prototype.toHHMMSS = function () {
-        var sec_num = parseInt(this, 10); // don't forget the second param
-        var hours = Math.floor(sec_num / 3600);
-        var minutes = Math.floor((sec_num - hours * 3600) / 60);
-        var seconds = sec_num - hours * 3600 - minutes * 60;
-
-        if (hours < 10) {
-          hours = "0" + hours;
-        }
-        if (minutes < 10) {
-          minutes = "0" + minutes;
-        }
-        if (seconds < 10) {
-          seconds = "0" + seconds;
-        }
-        return hours + ":" + minutes + ":" + seconds;
-      };
+      // Creating track method call
       pointsPath = new THREE.CurvePath();
       createPointPath(sealBehaviourData);
+      // Creating water surface method call
+      createGrid();
+
+      // initGui();
     }
   );
 }
+
+String.prototype.toHHMMSS = function () {
+  var sec_num = parseInt(this, 10); // don't forget the second param
+  var hours = Math.floor(sec_num / 3600);
+  var minutes = Math.floor((sec_num - hours * 3600) / 60);
+  var seconds = sec_num - hours * 3600 - minutes * 60;
+
+  if (hours < 10) {
+    hours = "0" + hours;
+  }
+  if (minutes < 10) {
+    minutes = "0" + minutes;
+  }
+  if (seconds < 10) {
+    seconds = "0" + seconds;
+  }
+  return hours + ":" + minutes + ":" + seconds;
+};
 let skip1 = 0;
 export let skipper = 20;
 function intervalFunction() {
@@ -608,7 +621,6 @@ function intervalFunction() {
         // pointsPath = new THREE.CurvePath();
         sealBehaviourData = nextInfo;
         page1++;
-        console.log(nextInfo);
       }
       currentStatus();
       moveGeometryToCoordinates(Number(rangeSlider.value));
@@ -623,25 +635,24 @@ function intervalFunction() {
 }
 
 function currentStatus() {
-  // let skip = 0;
-  // if (Number(rangeSlider.value) % 999 == 0 || page == 0) {
-  //   skip = page * perPage;
-  // }
-  // if (page > 0) {
-  //   skip = page * perPage - skipper;
-  // }
   let skip = page1 * perPage;
   if (Number(prevValue) < Number(rangeSlider.value)) {
     currentWidth =
-      Number(chartDiv.style.width.split("%")[0]) -
+      parseFloat(absDiv.style.width) -
       Number(perSecWidth) *
         Number(Number(rangeSlider.value) - Number(prevValue));
   } else {
     currentWidth =
-      Number(chartDiv.style.width.split("%")[0]) +
-      Number(perSecWidth) * (Number(prevValue) - Number(rangeSlider.value));
+      parseFloat(absDiv.style.width) +
+      Number(perSecWidth) *
+        Number(Number(rangeSlider.value) - Number(prevValue));
   }
-  chartDiv.style.width = currentWidth + "%";
+  //  else {
+  //   currentWidth =
+  //     Number(chartDiv.style.width.split("%")[0]) +
+  //     Number(perSecWidth) * (Number(prevValue) - Number(rangeSlider.value));
+  // }
+  absDiv.style.width = currentWidth + "px";
   const currentState =
     sealBehaviourData[Number(rangeSlider.value - skip) * Number(frequency)];
   const prevState = sealBehaviourData[Number(prevValue) * Number(frequency)];
@@ -665,7 +676,7 @@ function currentStatus() {
   pitchInnerText.innerText = `${Number(currentState?.pitch)?.toFixed(4)}`;
   rollInnerText.innerText = `${Number(currentState?.roll)?.toFixed(4)}`;
   headInnerText.innerText = `${Number(currentState?.heading)?.toFixed(4)}`;
-  depthInnerText.innerText = `${Number(currentState["Depth"])?.toFixed(2)}m`;
+  // depthInnerText.innerText = `${Number(currentState["Depth"])?.toFixed(2)}m`;
   if (!isStart) {
     if (currentState?.Simple_Sleep_Code === "REM") {
       if (

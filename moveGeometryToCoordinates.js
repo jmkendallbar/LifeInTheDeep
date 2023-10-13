@@ -8,10 +8,8 @@ import {
   scene,
   gridHelper,
   cameraDistance,
-  // page,
   page1,
   perPage,
-  // skipper,
   count,
 } from "./main.js";
 
@@ -26,24 +24,8 @@ export default function moveGeometryToCoordinates(j) {
     desiredCameraPosition;
   // Calculate the closest point on the path to the target coordinates
   let fraction = 0;
-  // let skip = 0;
-  // if (j % 999 == 0 || page == 0) {
-  //   skip = page * perPage;
-  //   console.log("called1", skip);
-  // }
-  // if (page > 0) {
-  //   skip = page * perPage - skipper;
-  //   console.log("called2", skip);
-  // }
   let skip = page1 * perPage;
   while (fraction < 1) {
-    // console.log("detail", skip, j, j - skip);
-    // console.log(
-    //   "detail",
-    //   pointsPath.curves[j - skip],
-    //   pointsPath,
-    //   pointsPath.curves[0]
-    // );
     closestPointOnRotatedTrack = pointsPath.curves[count].getPointAt(fraction);
     currentPosition = pointsPath.curves[count].getPointAt(fraction + 1); // You can adjust the fraction value
     rotationMatrix = new THREE.Matrix4().makeRotationX(-Math.PI / 2); // Use the same rotation value
