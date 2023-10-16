@@ -29,9 +29,8 @@ let seal = [];
 let range;
 export let page = 0,
   page1 = 0;
-export let perPage = 999;
+export let perPage = 1999;
 export let count = 0;
-export let count1 = 0;
 // let model;
 
 const loadingContainer = document.getElementById("loading-container");
@@ -74,6 +73,9 @@ export let gpuPanel;
 export let gui;
 let nextInfo = [];
 let line1;
+let skip1 = 0;
+
+
 
 // viewport
 export let inset = {
@@ -112,7 +114,7 @@ let minStroke, maxStroke;
 let prevValue;
 export let lastIndex;
 // Element Variables
-export let rangeSlider,
+export let rangeSlider, updateChart = false,
   strokeEle,
   strokeInnerText,
   heartEle,
@@ -141,11 +143,13 @@ export let rangeSlider,
   svgContainer,
   targetElment,
   targetdWidth,
-  absDiv;
+  absDiv, modal,
+  sliderOne, sliderTwo, slideOnePage, sliderTwoPage, isSliderClicked = false;
 
 let timer;
 let isTimerStop = true;
 let points;
+export let skipper = 200;
 // This is the intializing function when the website will load first
 init();
 // let lod = new THREE.LOD();
@@ -329,13 +333,14 @@ function init() {
       cropBtn.style.cursor = "pointer";
 
       // Get the modal
-      var modal = document.getElementById("myModal");
+      modal = document.getElementById("myModal");
 
       var span = document.getElementsByClassName("close")[0];
 
       // When the user clicks the button, open the modal
       cropBtn.onclick = function () {
         modal.style.display = "block";
+        // clipVideotimeRangeSetup()
       };
 
       // When the user clicks on <span> (x), close the modal
@@ -350,19 +355,14 @@ function init() {
         }
       };
 
-      let sliderOne = document.getElementById("slider-1");
-      let sliderTwo = document.getElementById("slider-2");
+      sliderOne = document.getElementById("slider-1");
+      sliderTwo = document.getElementById("slider-2");
       let displayValOne = document.getElementById("range1");
       let displayValTwo = document.getElementById("range2");
       let minGap = 0;
       let sliderTrack = document.querySelector(".slider-track");
       let sliderMaxValue = document.getElementById("slider-1").max;
-      sliderOne.min = Number(sealBehaviourData[0].Seconds);
-      sliderOne.value = Number(sealBehaviourData[0].Seconds);
-      sliderOne.max = Number(sealBehaviourData[lastIndex].Seconds);
-      sliderTwo.min = Number(sealBehaviourData[0].Seconds) + frequency;
-      sliderTwo.max = Number(sealBehaviourData[lastIndex].Seconds);
-      sliderTwo.value = Number(sealBehaviourData[lastIndex].Seconds);
+      clipVideotimeRangeSetup()
 
       // DUAL RANGE SLIDER
       function slideOne() {
@@ -371,9 +371,7 @@ function init() {
         }
         displayValOne.textContent =
           (
-            sliderOne.value / 60 -
-            Number(sealBehaviourData[0].Seconds) / 60
-          ).toFixed(0) + " min";
+            sliderOne.value / 60).toFixed(0) + " min";
         fillColor();
       }
       function slideTwo() {
@@ -438,75 +436,42 @@ function init() {
       // reset button
       resetBtn.style.cursor = "pointer";
       resetBtn.onclick = function () {
+        clearInterval(timer)
+        showLoadingOverlay()
+        page = 0
+        skip1 = 0
+        page1 = 0
+        prevValue = 0
+        pointsPath = new THREE.CurvePath();
+        dataSetup(page, true)
         rangeSlider.value = rangeSlider.min;
       };
 
       // clip video and chart method
       confirmDuration.onclick = function () {
         clearInterval(timer);
+        pointsPath = new THREE.CurvePath();
+        page = Math.floor(Number(sliderOne.value) / perPage);
+        page1 = Math.floor(Number(sliderOne.value) / perPage);
+        sliderTwoPage = Math.floor(Number(sliderTwo.value) / perPage);
+        // console.log(page, sliderOne.value, sliderTwo.value);
+        rangeSlider.min = Number(sliderOne.value);
+        rangeSlider.value = Number(sliderOne.value);
+        rangeSlider.defaultValue = Number(sliderOne.value);
+        rangeSlider.max = Number(sliderTwo.value);
+        isSliderClicked = true
+        updateChart = true
+        let skip = page1 * perPage;
+        count = rangeSlider.value - skip;
+        showLoadingOverlay()
+        dataSetup(page, true)
         if (playBtn.style.display === "block") {
           pauseContinue();
           isTimerStop = true;
           pauseBtn.style.display = "block";
           playBtn.style.display = "none";
         }
-        let xArray1 = sealBehaviourData.filter((item) => {
-          if (
-            sliderOne.value <= Number(item.Seconds) &&
-            sliderTwo.value >= Number(item.Seconds)
-          ) {
-            return item;
-          }
-        });
-        // initialSeconds = xArray1[0].Seconds;
-        let startIndex = sealBehaviourData
-          .map((item) => {
-            if (sliderOne.value === item.Seconds.toString()) {
-              return Number(item.Seconds);
-            }
-          })
-          .indexOf(Number(sliderOne.value));
-        let endIndex = sealBehaviourData
-          .map((item) => {
-            if (sliderTwo.value === item.Seconds.toString()) {
-              return Number(item.Seconds);
-            }
-          })
-          .indexOf(Number(sliderTwo.value));
-        length = (xArray1.length - 1) / frequency;
-        rangeSlider.min = startIndex;
-        rangeSlider.value = startIndex;
-        rangeSlider.defaultValue = startIndex;
-        rangeSlider.max = endIndex;
         modal.style.display = "none";
-
-        // after loaded and data this function will call
-        intervalFunction();
-
-        minStroke = xArray1.reduce(function (prev, curr) {
-          return Number(prev.Stroke_Rate) < Number(curr.Stroke_Rate)
-            ? prev
-            : curr;
-        });
-
-        maxStroke = xArray1.reduce(function (prev, curr) {
-          return Number(prev.Stroke_Rate) > Number(curr.Stroke_Rate)
-            ? prev
-            : curr;
-        });
-
-        const updatePlotData = drawGraph(
-          xArray1,
-          xArray1,
-          minStroke,
-          maxStroke,
-          xArray1.length - 1,
-          xArray1
-        );
-        prevValue = rangeSlider.value;
-        perSecWidth = targetdWidth / xArray1.length;
-        absDiv.style.width = targetdWidth + "px";
-        Plotly.update("chartDiv", updatePlotData.data, updatePlotData.layout);
       };
 
       // Play speed control method
@@ -553,8 +518,8 @@ function init() {
       // Slider onclick method
       prevValue = Number(sealBehaviourData[0].Seconds) - initialSeconds;
       rangeSlider.onclick = function () {
-        // showLoadingOverlay();
         clearInterval(timer);
+        showLoadingOverlay();
         page = Math.floor(rangeSlider.value / perPage);
         page1 = Math.floor(rangeSlider.value / perPage);
         let skip = page1 * perPage;
@@ -562,9 +527,9 @@ function init() {
         pointsPath = new THREE.CurvePath();
         dataSetup(page);
         sealBehaviourData = nextInfo;
+        updateChart = true
         // hideLoadingOverlay();
-        intervalFunction();
-
+        // updateChartData(nextInfo)
         if (!isTimerStop) {
           isTimerStop = true;
           pauseContinue();
@@ -579,9 +544,9 @@ function init() {
       pointsPath = new THREE.CurvePath();
       createPointPath(sealBehaviourData);
       // Creating water surface method call
-      createGrid();
 
       // initGui();
+      // createGrid();
     }
   );
 }
@@ -603,8 +568,6 @@ String.prototype.toHHMMSS = function () {
   }
   return hours + ":" + minutes + ":" + seconds;
 };
-let skip1 = 0;
-export let skipper = 20;
 function intervalFunction() {
   timer = setInterval(() => {
     if (Number(rangeSlider.value) < Number(rangeSlider.max) - 1) {
@@ -618,10 +581,14 @@ function intervalFunction() {
         dataSetup(page);
       }
       if (skip1 == ranger) {
-        // pointsPath = new THREE.CurvePath();
         sealBehaviourData = nextInfo;
+        updateChartData(sealBehaviourData)
         page1++;
       }
+      // if (page === sliderTwoPage) {
+      //   clearInterval(timer)
+      //   isSliderClicked = false
+      // }
       currentStatus();
       moveGeometryToCoordinates(Number(rangeSlider.value));
     } else {
@@ -636,16 +603,18 @@ function intervalFunction() {
 
 function currentStatus() {
   let skip = page1 * perPage;
+  console.log(rangeSlider.value);
   if (Number(prevValue) < Number(rangeSlider.value)) {
     currentWidth =
-      parseFloat(absDiv.style.width) -
-      Number(perSecWidth) *
-        Number(Number(rangeSlider.value) - Number(prevValue));
+      parseFloat(absDiv.style.width) - (
+        Number(perSecWidth) *
+        (Number(rangeSlider.value) - Number(prevValue + skip)));
   } else {
     currentWidth =
       parseFloat(absDiv.style.width) +
       Number(perSecWidth) *
-        Number(Number(rangeSlider.value) - Number(prevValue));
+      Number(Number(rangeSlider.value) - Number(prevValue + skip));
+
   }
   //  else {
   //   currentWidth =
@@ -661,11 +630,11 @@ function currentStatus() {
     currentState?.Simple_Sleep_Code === "Active Waking"
       ? "#0081AA"
       : currentState?.Simple_Sleep_Code === "SWS"
-      ? "#00B448"
-      : currentState?.Simple_Sleep_Code === "REM" ||
-        currentState?.Simple_Sleep_Code === "Quiet Waking"
-      ? "#E2BE00"
-      : "";
+        ? "#00B448"
+        : currentState?.Simple_Sleep_Code === "REM" ||
+          currentState?.Simple_Sleep_Code === "Quiet Waking"
+          ? "#E2BE00"
+          : "";
   heartInnerText.innerText = `${Number(currentState?.Heart_Rate)?.toFixed(
     2
   )}bpm`;
@@ -842,6 +811,7 @@ export function createPointPath(arr) {
   animate();
 }
 
+//Creating grid as water surface
 export function createGrid() {
   gridHelper = new THREE.GridHelper(1000, 500);
   gridHelper.rotation.x = 0.04;
@@ -921,7 +891,7 @@ export function createPlane() {
 }
 
 // Define the function to fetch and populate data
-export async function dataSetup(page) {
+export async function dataSetup(page, initial = false) {
   try {
     clearInterval(timer);
     const { data, batchs } = await fetchDataFromAPI(page);
@@ -930,13 +900,67 @@ export async function dataSetup(page) {
       initialSeconds = Number(data[0].Seconds);
       frequency = Number(data[1].Seconds) - Number(data[0].Seconds);
       data.forEach((item) => {
-        nextInfo[Number(item.Seconds) - initialSeconds] = item;
+        initial ? (sealBehaviourData[Number(item.Seconds) - initialSeconds] = item) :
+          (nextInfo[Number(item.Seconds) - initialSeconds] = item);
       });
-      createPointPath(nextInfo);
+      createPointPath(initial ? sealBehaviourData : nextInfo);
       intervalFunction();
+      hideLoadingOverlay()
+      if (updateChart) {
+        absDiv.style.width = targetdWidth + "px";
+        updateChartData(sealBehaviourData)
+        updateChart = false
+      }
     }
   } catch (error) {
     console.log(error);
     hideLoadingOverlay();
   }
+}
+
+function clipVideotimeRangeSetup() {
+  sliderOne.min = 0;
+  sliderTwo.min = 0;
+  sliderOne.value = 0;
+  sliderTwo.value = range;
+  sliderOne.max = range;
+  sliderTwo.max = range;
+}
+
+// Ensure the DOMContentLoaded listener is set up outside the function
+document.addEventListener('DOMContentLoaded', clipVideotimeRangeSetup);
+
+// Plotly update chart -- Function
+function updateChartData(data) {
+  frequency = Number(data[1].Seconds) - Number(data[0].Seconds);
+  length = data.length / frequency;
+  lastIndex = (length - 1) * frequency;
+  const xArray = data.map((item) => {
+    return Number(item.Seconds) / 60;
+  });
+  const yArray = data.map((item) => {
+    return Number(item.Stroke_Rate);
+  });
+
+  minStroke = data.reduce(function (prev, curr) {
+    return Number(prev.Stroke_Rate) < Number(curr.Stroke_Rate)
+      ? prev
+      : curr;
+  });
+
+  maxStroke = data.reduce(function (prev, curr) {
+    return Number(prev.Stroke_Rate) > Number(curr.Stroke_Rate)
+      ? prev
+      : curr;
+  });
+
+  const plotData = drawGraph(
+    xArray,
+    yArray,
+    minStroke,
+    maxStroke,
+    lastIndex,
+    data
+  );
+  Plotly.newPlot("chartDiv", plotData.data, plotData.layout);
 }
