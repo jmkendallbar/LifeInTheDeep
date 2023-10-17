@@ -660,6 +660,7 @@ function currentStatus() {
     if (
       currentState?.Simple_Sleep_Code === "SWS" ||
       currentState?.Simple_Sleep_Code === "Quiet Waking"
+
     ) {
       if (prevState.Simple_Sleep_Code === "REM") {
         prepareCrossFade(idleAction, glideAction, 1.0);
