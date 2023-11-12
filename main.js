@@ -31,6 +31,25 @@ const loadingContainer = document.getElementById("loading-container");
 const loadingText = document.getElementById("loading-text");
 const loadingManager = new THREE.LoadingManager();
 
+// TODO: Add to AwesomeDB and load from there
+const sceneActions = {
+    'Seal_Animation.glb': {
+        actions: {
+            idleActionIdx: 6,
+            glideActionIdx: 28,
+            swimActionIdx: 15
+        }
+    },
+    'Seal._2.glb': {
+        actions: {
+            idleActionIdx: 1,
+            glideActionIdx: 0,
+            swimActionIdx: 0
+        }
+    },
+    
+}
+
 // This function will be called when a resource is loaded
 loadingManager.onProgress = (item, loaded, total) => {
   const progress = loaded / total;
@@ -145,8 +164,13 @@ export let rangeSlider,
 function init() {
   // creating instance for loader which is use to load our model by using s3 bucket
   const loader = new GLTFLoader(loadingManager);
+  // TODO: Parameterize gltf/glb input at application level
+  const sceneName = 'Seal._2.glb';
+  // const sceneName = 'Seal_Animation.glb';
   loader.load(
-    "https://visualising-life-in-the-deep.s3.amazonaws.com/Seal_Animation.glb",
+    // "gltf/Seal._2.glb",
+    `gltf/${sceneName}`,
+    // "https://visualising-life-in-the-deep.s3.amazonaws.com/Seal_Animation.glb",
     function (gltf) {
       model = gltf.scene;
 
@@ -270,9 +294,10 @@ function init() {
       mixer = new THREE.AnimationMixer(model);
 
       // Used to select animation type
-      idleAction = mixer.clipAction(animations[6]);
-      glideAction = mixer.clipAction(animations[28]);
-      swimAction = mixer.clipAction(animations[15]);
+      // Lookup animation indices based on scene name
+      idleAction = mixer.clipAction(animations[sceneActions[sceneName].actions.idleActionIdx]);
+      glideAction = mixer.clipAction(animations[sceneActions[sceneName].actions.glideActionIdx]);
+      swimAction = mixer.clipAction(animations[sceneActions[sceneName].actions.swimActionIdx]);
 
       actions = [idleAction, glideAction, swimAction];
 
