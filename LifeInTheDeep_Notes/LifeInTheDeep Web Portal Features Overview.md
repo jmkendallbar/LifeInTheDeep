@@ -42,21 +42,21 @@ new THREE.LineCurve3(
 
               new THREE.Vector3(
 
-                Number(sealBehaviourData[index].x),
+                Number(marineLifeBehaviourData[index].x),
 
-                Number(sealBehaviourData[index].y),
+                Number(marineLifeBehaviourData[index].y),
 
-                Number(sealBehaviourData[index].z)
+                Number(marineLifeBehaviourData[index].z)
 
               ),
 
               new THREE.Vector3(
 
-                Number(sealBehaviourData[index + 1].x),
+                Number(marineLifeBehaviourData[index + 1].x),
 
-                Number(sealBehaviourData[index + 1].y),
+                Number(marineLifeBehaviourData[index + 1].y),
 
-                Number(sealBehaviourData[index + 1].z)
+                Number(marineLifeBehaviourData[index + 1].z)
 
               )
 ```
@@ -64,11 +64,11 @@ new THREE.LineCurve3(
 	- in `moveGeometryToCoordinates.js`
 
 ```
-model.rotation.x = Number(sealBehaviourData[j].pitch);
+model.rotation.x = Number(marineLifeBehaviourData[j].pitch);
 
-    model.rotation.z = Number(sealBehaviourData[j].roll);
+    model.rotation.z = Number(marineLifeBehaviourData[j].roll);
 
-    model.rotation.y = Number(sealBehaviourData[j].heading);
+    model.rotation.y = Number(marineLifeBehaviourData[j].heading);
 ```
 
 - how/where can I change the color map for each behavioral state?

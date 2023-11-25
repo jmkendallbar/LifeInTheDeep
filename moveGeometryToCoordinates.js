@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import {
   pointsPath,
-  sealBehaviourData,
+  marineLifeBehaviourData,
   model,
   camera,
   renderer,
@@ -28,9 +28,9 @@ export default function moveGeometryToCoordinates(j) {
     closestPoint = closestPointOnRotatedTrack.applyMatrix4(rotationMatrix);
 
     nextPoint = currentPosition.applyMatrix4(rotationMatrix);
-    model.rotation.x = Number(sealBehaviourData[j].pitch);
-    model.rotation.z = Number(sealBehaviourData[j].roll);
-    model.rotation.y = Number(sealBehaviourData[j].heading);
+    model.rotation.x = Number(marineLifeBehaviourData[j].pitch);
+    model.rotation.z = Number(marineLifeBehaviourData[j].roll);
+    model.rotation.y = Number(marineLifeBehaviourData[j].heading);
     // model.lookAt(nextPoint);
     model.position.copy(closestPoint);
 

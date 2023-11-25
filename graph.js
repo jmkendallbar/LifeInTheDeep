@@ -4,7 +4,7 @@ export default function drawGraph(
   minStroke,
   maxStroke,
   lastIndex,
-  sealBehaviourData
+  marineLifeBehaviourData
 ) {
   // Define Data
   const data = [
@@ -19,8 +19,8 @@ export default function drawGraph(
   const layout = {
     xaxis: {
       range: [
-        Number(sealBehaviourData[0].Seconds) / 60,
-        Number(sealBehaviourData[lastIndex].Seconds) / 60,
+        Number(marineLifeBehaviourData[0].Seconds) / 60,
+        Number(marineLifeBehaviourData[lastIndex].Seconds) / 60,
       ],
       title: "Time [min of dive]",
     },
