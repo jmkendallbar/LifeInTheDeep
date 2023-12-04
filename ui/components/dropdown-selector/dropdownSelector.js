@@ -1,6 +1,6 @@
-import {selectedSceneName} from '../../../main';
+import { init, setSelectedSceneName } from '../../../main';
 
-export default function renderDropdownElement({ options, elementId }) {
+export default function renderDropdownElement({ options, elementId, onOptionSelected, onDropdownOpened }) {
 	const dropdownContainerElement = document.getElementById(elementId);
 	if (!dropdownContainerElement) {
 		console.error(`Button with id ${elementId} not found.`);
@@ -41,7 +41,10 @@ export default function renderDropdownElement({ options, elementId }) {
 			const displayElement = dropdownContainerElement.querySelector('.block.truncate');
 			if (displayElement) {
 				displayElement.textContent = option;
-				selectedSceneName = option;
+				
+				setSelectedSceneName(option);
+				// Reload the scene/page
+				window.location.reload();
 			}
 			// Close the dropdown list when an option is selected
 			list.style.display = 'none';

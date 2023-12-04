@@ -164,11 +164,10 @@ export let rangeSlider,
            absDiv;
 
 // Initial call
-function init () {
+export function init () {
 	// creating instance for loader which is use to load our model by using s3 bucket
 	const loader = new GLTFLoader(loadingManager);
-	const sceneName = 'Seal._2.glb';
-	// const sceneName = 'Seal_Animation.glb';
+	const sceneName = getSelectedSceneName();
 	loader.load(
 		// "gltf/Seal._2.glb",
 		`gltf/${sceneName}`,
@@ -861,4 +860,41 @@ function createGrid () {
 	var axesHelper = new THREE.AxesHelper(10);
 	scene.add(axesHelper);
 	axesHelper.rotation.x = -Math.PI / 2;
+}
+
+export function setSelectedSceneName(newName) {
+	selectedSceneName = newName;
+	// Store cookie
+	document.cookie = `selectedSceneName=${newName}`;
+}
+
+/**
+ * Look for the selected scene name in the cookie, then in the variable
+ * @returns {string}
+ */
+export function getSelectedSceneName() {
+	// Attempt to get the scene name from the cookie
+	const cookieSceneName = getCookie('selectedSceneName');
+	if (cookieSceneName) {
+		return cookieSceneName;
+	}
+	
+	// Fallback to the selectedSceneName variable or the first key from sceneActions
+	return selectedSceneName || Object.keys(sceneActions).shift();
+}
+
+function getCookie(name) {
+	let cookieValue = null;
+	if (document.cookie && document.cookie !== '') {
+		let cookies = document.cookie.split(';');
+		for (let i = 0; i < cookies.length; i++) {
+			let cookie = cookies[i].trim();
+			// Does this cookie string begin with the name we want?
+			if (cookie.substring(0, name.length + 1) === (name + '=')) {
+				cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+				break;
+			}
+		}
+	}
+	return cookieValue;
 }

@@ -20,7 +20,8 @@ import {
   headEle,
   pitchEle,
   pitchInnerText,
-} from "./main";
+  selectedSceneName,
+} from './main';
 
 import renderDropdownElement from './ui/components/dropdown-selector/dropdownSelector';
 import {sceneNames} from './main';
@@ -68,6 +69,8 @@ export function loadComponent({componentFilePath, componentHtmlId}) {
         renderDropdownElement({
           options: sceneNames,
           elementId: componentHtmlId, // Assuming this is the ID of the dropdown button or container
+            onOptionSelected: _onSceneDropdownOptionSelected,
+            onDropdownOpened: _onSceneDropdownOpened,
         });
         
         document.body.appendChild(container); // Append the container to the body
@@ -77,7 +80,7 @@ export function loadComponent({componentFilePath, componentHtmlId}) {
       });
 }
 
-function _addTailwindComponentsToDOM() {
+function _addTailwindComponentsToDOM () {
   const tailwindComponents = [
     {
       componentFilePath: './ui/components/dropdown-selector/dropdownSelector.html',
@@ -88,4 +91,24 @@ function _addTailwindComponentsToDOM() {
   tailwindComponents.forEach(component => {
     loadComponent(component);
   });
+}
+
+function _onSceneDropdownOptionSelected ({ option, dropdownContainerElement, list}) {
+  // Update the display element with the selected option
+  const displayElement = dropdownContainerElement.querySelector('.block.truncate');
+  if (displayElement) {
+    displayElement.textContent = option;
+    selectedSceneName = option;
+  }
+  // Close the dropdown list when an option is selected
+  list.style.display = 'none';
+}
+
+function _onSceneDropdownOpened (element) {
+  const list = document.querySelector('.dropdown-list'); // Selects the first .dropdown-list element
+  if (!list) {
+    console.error('Dropdown list element not found.');
+    return;
+  }
+  list.style.display = list.style.display === 'none' ? 'block' : 'none';
 }
