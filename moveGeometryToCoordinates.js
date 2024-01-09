@@ -59,8 +59,8 @@ export default function moveGeometryToCoordinates(j) {
     camera.lookAt(model.position);
 
     // Update camera2 position and orientation
-    let leftOffset = 10; // Distance to the left
-    let upOffset = 10; // Distance upward
+    let leftOffset = 0; // Distance to the left
+    let upOffset = 2; // Distance upward
     let forwardOffset = 10; // Distance in front of the seal
 
     // Calculate the new position of camera2
