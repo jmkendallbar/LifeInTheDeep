@@ -618,7 +618,7 @@ String.prototype.toHHMMSS = function () {
 function intervalFunction () {
 	timer = setInterval(() => {
 		if (Number(rangeSlider.value) < Number(rangeSlider.max) - 1) {
-			rangeSlider.value = rangeSlider.value * 1 + 360;
+			rangeSlider.value = rangeSlider.value * 1 + 1;
 			currentStatus();
 			moveGeometryToCoordinates(Number(rangeSlider.value));
 		} else {
