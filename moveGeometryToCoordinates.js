@@ -10,7 +10,17 @@ import {
   cameraDistance,
 } from "./main.js";
 
+import { addXYToMap } from "./map.js";
+
 export default function moveGeometryToCoordinates(j) {
+  console.log(j)
+  console.log(marineLifeBehaviourData[j])
+  console.log(mapboxgl)
+  console.log(map)
+  addXYToMap(
+    marineLifeBehaviourData[j].Long,
+    marineLifeBehaviourData[j].Lat
+  )
   // Function to move the geometry to the specified X, Y, Z coordinates
   let closestPoint,
     closestPointOnRotatedTrack,

@@ -66,6 +66,7 @@ loadingManager.onLoad = () => {
 var xyz;
 for (xyz = 85; xyz <= 87; xyz++) {
 	importPromises.push(import(`./seal-info/batch_${xyz}.json`));
+	// http://awesome-compute.sdsc.edu:8000/v1/hypnop/test33_HypoactiveHeidi?start_time=2021-04-22T16%3A58%3A13&end_time=2021-04-22T17%3A33%3A44&auth_status=true
 }
 
 // Use Promise.all to wait for all imports to complete
@@ -617,7 +618,7 @@ String.prototype.toHHMMSS = function () {
 function intervalFunction () {
 	timer = setInterval(() => {
 		if (Number(rangeSlider.value) < Number(rangeSlider.max) - 1) {
-			rangeSlider.value = rangeSlider.value * 1 + 1;
+			rangeSlider.value = rangeSlider.value * 1 + 360;
 			currentStatus();
 			moveGeometryToCoordinates(Number(rangeSlider.value));
 		} else {
