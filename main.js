@@ -165,7 +165,7 @@ export let rangeSlider,
            absDiv;
 
 // Initial call
-export function init () {
+export function init() {
 	// creating instance for loader which is use to load our model by using s3 bucket
 	const loader = new GLTFLoader(loadingManager);
 	const sceneName = getSelectedSceneName();
