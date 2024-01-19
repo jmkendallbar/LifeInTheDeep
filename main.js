@@ -24,6 +24,7 @@ import {LineMaterial} from 'three/addons/lines/LineMaterial.js';
 import {LineGeometry} from 'three/addons/lines/LineGeometry.js';
 import moveGeometryToCoordinates from './moveGeometryToCoordinates';
 import addHTMLElementsToDOM from './domHelper';
+import { addPathToMap } from './map';
 
 const importPromises = [];
 let seal = [];
@@ -178,6 +179,7 @@ export function init() {
 			
 			initialSeconds = Number(seal[0].Seconds);
 			frequency = Number(seal[1].Seconds) - Number(seal[0].Seconds);
+			addPathToMap(seal[0].SealID)
 			seal.forEach((item) => {
 				marineLifeBehaviourData[Number(item.Seconds) - initialSeconds] = item;
 			});

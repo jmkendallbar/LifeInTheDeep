@@ -14,10 +14,6 @@ import {
 import { addXYToMap } from "./map.js";
 
 export default function moveGeometryToCoordinates(j) {
-  console.log(j)
-  console.log(marineLifeBehaviourData[j])
-  console.log(mapboxgl)
-  console.log(map)
   addXYToMap(
     marineLifeBehaviourData[j].Long,
     marineLifeBehaviourData[j].Lat

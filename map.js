@@ -1,3 +1,5 @@
+import { marineLifeBehaviourData } from "./main";
+
 mapboxgl.accessToken = "pk.eyJ1IjoiY2xvd3JpZSIsImEiOiJja21wMHpnMnIwYzM5Mm90OWFqaTlyejhuIn0.TXE-FIaqF4K_K1OirvD0wQ";
 const map = new mapboxgl.Map({
     container: 'map',
@@ -16,6 +18,7 @@ const base_geojson = {
     }
 }
 
+
 map.on('load', () => {
     map.addSource('data', {
         'type': 'geojson',
@@ -31,6 +34,30 @@ map.on('load', () => {
         }
     });
 })
+
+export function addPathToMap(SealID) {
+    // TODO there could be an if/then to see if the map is already loaded here
+    // If loaded, add as below
+    // If not loaded, add a `map.on` event handler
+    map.addSource('route', {
+        'type': 'geojson',
+        'data': `../simplified-seal-track/${SealID}.geojson`
+    });
+    map.addLayer({
+        'id': 'route',
+        'type': 'line',
+        'source': 'route',
+        'layout': {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        'paint': {
+            'line-color': '#888',
+            'line-width': 1
+        }
+    });
+    // })
+}
 
 export function addXYToMap(x, y) {
     let new_geojson = base_geojson
