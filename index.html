@@ -126,9 +126,10 @@
     }
 
     #map {
-      position: absolute;
-      right: 0px;
-      bottom: 0px;
+      position: absolute; /* Changed from 'relative' to 'absolute' for precise positioning */
+      left: 30px;          /* Aligns the map to the left side of the container */
+      top: 60%;           /* Positions the map halfway down the container */
+      transform: translateY(-50%); /* Adjusts the map to be centered vertically at 50% */
       width: 300px;
       height: 200px;
       z-index: 10;
