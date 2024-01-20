@@ -804,7 +804,6 @@ function createPointPath () {
 	
 	line = new Line2(geometry, matLine);
 	line.computeLineDistances();
-	line.scale.set(1, 1, 1);
 	scene.add(line);
 	
 	arrow('x');
@@ -825,8 +824,7 @@ function createPointPath () {
 	
 	line1 = new THREE.Line(geo, matLineBasic);
 	line1.computeLineDistances();
-	line1.visible = false;
-	scene.add(line1);
+	line1.visible = true;
 	
 	const lod = new THREE.LOD();
 	

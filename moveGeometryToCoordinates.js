@@ -33,14 +33,11 @@ export default function moveGeometryToCoordinates(j) {
     closestPoint = closestPointOnRotatedTrack.applyMatrix4(rotationMatrix);
     nextPoint = currentPosition.applyMatrix4(rotationMatrix);
 
-    // Apply rotations using quaternions
-    let roll = Number(marineLifeBehaviourData[j].roll);
-    let pitch = -Number(marineLifeBehaviourData[j].pitch);
-    let heading = Number(marineLifeBehaviourData[j].heading);
-    
-    let quaternion = new THREE.Quaternion();
-    quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), roll); // Roll
-    quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitch), quaternion); // Pitch
+    let roll = Number(marineLifeBehaviourData[j].roll);    // Roll around Z-axis
+    let pitch = -Number(marineLifeBehaviourData[j].pitch);  // Pitch around X-axis
+    let heading = Number(marineLifeBehaviourData[j].heading);  // Heading around Y-axis
+
+    const quaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(pitch, heading, roll, 'YXZ'));
 
     model.quaternion.copy(quaternion);
     model.position.copy(closestPoint);
