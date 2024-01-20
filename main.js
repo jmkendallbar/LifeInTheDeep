@@ -659,10 +659,11 @@ function currentStatus () {
 			? '#0081AA'
 			: currentState?.Simple_Sleep_Code === 'SWS'
 				? '#00B448'
-				: currentState?.Simple_Sleep_Code === 'REM' ||
-				currentState?.Simple_Sleep_Code === 'Quiet Waking'
-					? '#E2BE00'
-					: '';
+				: currentState?.Simple_Sleep_Code === 'REM' 
+					? '#F5C24C'
+					: currentState?.Simple_Sleep_Code === 'Quiet Waking'
+						? '#5092B6'
+						: '';
 	heartInnerText.innerText = `${Number(currentState.Heart_Rate)?.toFixed(
 		2,
 	)}bpm`;
@@ -782,8 +783,12 @@ function createPointPath () {
 		) {
 			color.setHex(stateColors[3]);
 			colors.push(color.r, color.g, color.b);
-		} else {
+		} else if (marineLifeBehaviourData[Math.ceil(i / 21)]?.Simple_Sleep_Code === 'REM'
+		) {
 			color.setHex(stateColors[2]);
+			colors.push(color.r, color.g, color.b);
+		} else {
+			color.setHex(stateColors[4]);
 			colors.push(color.r, color.g, color.b);
 		}
 	}
@@ -794,7 +799,7 @@ function createPointPath () {
 	
 	matLine = new LineMaterial({
 		color: 0xffffff,
-		linewidth: 1, // in world units with size attenuation, pixels otherwise
+		linewidth: 10, // in world units with size attenuation, pixels otherwise
 		vertexColors: true,
 		
 		//resolution:  // to be set by renderer, eventually
