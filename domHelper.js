@@ -21,6 +21,7 @@ import {
   pitchEle,
   pitchInnerText,
   selectedSceneName,
+  setSelectedSceneName
 } from './main';
 
 import renderDropdownElement from './ui/components/dropdown-selector/dropdownSelector';
@@ -98,7 +99,7 @@ function _onSceneDropdownOptionSelected ({ option, dropdownContainerElement, lis
   const displayElement = dropdownContainerElement.querySelector('.block.truncate');
   if (displayElement) {
     displayElement.textContent = option;
-    selectedSceneName = option;
+    setSelectedSceneName(option);
   }
   // Close the dropdown list when an option is selected
   list.style.display = 'none';
